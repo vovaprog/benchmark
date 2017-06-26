@@ -1,0 +1,125 @@
+<h1>Benchmark</h1>
+
+<p>System information:<br/>
+c++ compiler: /usr/bin/c++ <br />
+c++ compiler version: c++ (Ubuntu 5.4.0-6ubuntu1~16.04.4) 5.4.0 20160609 <br />
+compiler flags:  -std=c++11 -march=native -Wall -pedantic -O3 -DNDEBUG <br />
+cpu: Intel(R) Core(TM) i3-5010U CPU @ 2.10GHz <br />
+boost: 1_58 <br />
+os: Ubuntu 16.04.2 LTS  </p>
+
+<h2>map search</h2>
+
+<p>Variable number of items is added to map (number of items stored in map is the value on X axis).
+Then constant number of map searches is done. Number of microseconds that test takes is the value of Y axis.
+Key is random uint64 value.</p>
+
+<h2>comparison of tree, hash table and binary search maps</h2>
+
+<p>Comparison of tree, hash and binary search structures with up to 350 elements:<br/>
+<img src="./plots/map_find_350_compare.png" alt="map find" title="" /></p>
+
+<p>Comparison of tree, hash and binary search structures with up to 3500 elements:<br/>
+<img src="./plots/map_find_3500_compare.png" alt="map find" title="" /></p>
+
+<p>Comparison of tree, hash and binary search structures with up to 100000 elements:<br/>
+<img src="./plots/map_find_100000_compare.png" alt="map find" title="" /></p>
+
+<h2>comparison of tree maps</h2>
+
+<p>Comparison of tree structures with up to 350 elements:<br/>
+<img src="./plots/map_find_350_tree.png" alt="map find" title="" /></p>
+
+<p>Comparison of tree structures with up to 3500 elements:<br/>
+<img src="./plots/map_find_3500_tree.png" alt="map find" title="" /></p>
+
+<p>Comparison of tree structures with up to 100000 elements:<br/>
+<img src="./plots/map_find_100000_tree.png" alt="map find" title="" /></p>
+
+<h2>comparison of hash table maps</h2>
+
+<p>Comparison of hash table structures with up to 350 elements:<br/>
+<img src="./plots/map_find_350_hash.png" alt="map find" title="" /></p>
+
+<p>Comparison of hash table structures with up to 3500 elements:<br/>
+<img src="./plots/map_find_3500_hash.png" alt="map find" title="" /></p>
+
+<p>Comparison of hash table structures with up to 100000 elements:<br/>
+<img src="./plots/map_find_100000_hash.png" alt="map find" title="" /></p>
+
+<h2>comparison of binary search maps</h2>
+
+<p>Comparison of binary search structures with up to 350 elements:<br/>
+<img src="./plots/map_find_350_bin_search.png" alt="map find" title="" /></p>
+
+<p>Comparison of binary search structures with up to 3500 elements:<br/>
+<img src="./plots/map_find_3500_bin_search.png" alt="map find" title="" /></p>
+
+<p>Comparison of binary search structures with up to 100000 elements:<br/>
+<img src="./plots/map_find_100000_bin_search.png" alt="map find" title="" /></p>
+
+<h2>search in map with string keys</h2>
+
+<p>X number of items is added to map, than constant number of searches are performed.
+Key is a random string. String is std::string, char p is a char pointer.</p>
+
+<h2>comparison of tree and hash table maps with string key</h2>
+
+<p>Tree and hash table maps with 16 byte string keys:<br/>
+<img src="./plots/string_map_compare_16_100.png" alt="string map" title="" /></p>
+
+<p>Tree and hash table maps with 16 byte string keys:<br/>
+<img src="./plots/string_map_compare_16_1000.png" alt="string map" title="" /></p>
+
+<h2>tree maps with string key</h2>
+
+<p>Tree maps with 16 byte string keys:<br/>
+<img src="./plots/string_map_find_16_100.png" alt="string map" title="" /></p>
+
+<p>Tree maps with 16 byte string keys:<br/>
+<img src="./plots/string_map_find_16_1000.png" alt="string map" title="" /></p>
+
+<p>Tree maps with 4 byte string keys:<br/>
+<img src="./plots/string_map_find_4_100.png" alt="string map" title="" /></p>
+
+<p>Tree maps with 4 byte string keys:<br/>
+<img src="./plots/string_map_find_4_1000.png" alt="string map" title="" /></p>
+
+<h2>hash table maps with string key</h2>
+
+<p>hash table maps with 16 byte string keys:</p>
+
+<p><img src="./plots/string_unordered_map_find_16_100.png" alt="string map" title="" /></p>
+
+<p>hash table maps with 16 byte string keys:</p>
+
+<p><img src="./plots/string_unordered_map_find_16_1000.png" alt="string map" title="" /></p>
+
+<p>hash table maps with 4 byte string keys:</p>
+
+<p><img src="./plots/string_unordered_map_find_4_100.png" alt="string map" title="" /></p>
+
+<p>hash table maps with 4 byte string keys:</p>
+
+<p><img src="./plots/string_unordered_map_find_4_1000.png" alt="string map" title="" /></p>
+
+<h2>map insert</h2>
+
+<p>X number of items are added to map.
+Time that takes to insert X items is on Y axis.
+Key is uint64 random number.</p>
+
+<p><img src="./plots/map_insert_10000.png" alt="map insert" title="" /></p>
+
+<h2>comparison of switch and maps</h2>
+
+<p>X is number of cases in switch and number of items in map.
+Constant number of searches is done. Y is time to complete searches.</p>
+
+<p><img src="./plots/switch.png" alt="switch" title="" /></p>
+
+<h2>arithmetic</h2>
+
+<p>comparison of arithmetic operations done on different data types.</p>
+
+<p><img src="./plots/arithmetic.png" alt="arithmetic" title="" /></p>
