@@ -1,3 +1,5 @@
+[back](./index.html)
+
 search in map with string keys
 ------------------------------
 
@@ -46,3 +48,5 @@ hash table maps with 4 byte string keys:
 hash table maps with 4 byte string keys:
 
 ![string map](./plots/string_unordered_map_find_4_1000.png)
+
+[back](./index.html)

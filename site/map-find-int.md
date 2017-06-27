@@ -1,7 +1,9 @@
+[back](./index.html)
+
 map search
 ----------
 
-Variable number of items is added to map (number of items stored in map is the value on X axis).
+Variable number of items is added to the map (number of items stored in the map is the value on X axis).
 Then constant number of map searches is done. Number of microseconds that test takes is the value of Y axis.
 Key is random uint64 value.
 
@@ -58,3 +60,5 @@ Comparison of binary search structures with up to 3500 elements:<br/>
 
 Comparison of binary search structures with up to 100000 elements:<br/>
 ![map find](./plots/map_find_100000_bin_search.png)
+
+[back](./index.html)
