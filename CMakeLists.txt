@@ -26,17 +26,17 @@ add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/plots_data" COMMAND "${CMAKE_BINA
 add_custom_target(run_benchmark DEPENDS "${CMAKE_BINARY_DIR}/plots_data")
 
 
-add_custom_target(generate_text COMMAND "bash" 
-    "${CMAKE_SOURCE_DIR}/tools/fill_readme_template.sh" "${CMAKE_SOURCE_DIR}/tools" "${CMAKE_BINARY_DIR}/article"
-    "${CMAKE_CXX_COMPILER}" "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" DEPENDS run_benchmark)
+add_custom_target(generate_pages COMMAND "bash" 
+    "${CMAKE_SOURCE_DIR}/site/generate_site.sh" "${CMAKE_SOURCE_DIR}/site" "${CMAKE_BINARY_DIR}/site"
+    "${CMAKE_CXX_COMPILER}" "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" DEPENDS benchmark)
 
 
-add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/article/plots" COMMAND "bash" 
+add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/site/plots" COMMAND "bash" 
     "${CMAKE_SOURCE_DIR}/tools/generate_plots.sh" "${CMAKE_BINARY_DIR}/plots_data" 
-    "${CMAKE_BINARY_DIR}/article/plots" "${CMAKE_SOURCE_DIR}/tools"
+    "${CMAKE_BINARY_DIR}/site/plots" "${CMAKE_SOURCE_DIR}/tools"
     DEPENDS run_benchmark)
-add_custom_target(generate_plots DEPENDS "${CMAKE_BINARY_DIR}/article/plots")
+add_custom_target(generate_plots DEPENDS "${CMAKE_BINARY_DIR}/site/plots")
 
 
-add_custom_target(article DEPENDS generate_text generate_plots)
+add_custom_target(site DEPENDS generate_pages generate_plots)
 
