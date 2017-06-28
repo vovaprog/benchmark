@@ -1,15 +1,18 @@
 Benchmark
 =========
 
-####Description
+Description
+-----------
 
 C++ benchmarks
 
-####Results
+Results
+-------
 
 [https://vovaprog.github.io/benchmark](https://vovaprog.github.io/benchmark)
 
-####Build and run
+Build and run
+-------------
 
 Create build directory, enter it and run commands:<br/>
 
