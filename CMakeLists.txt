@@ -28,7 +28,7 @@ add_custom_target(run_benchmark DEPENDS "${CMAKE_BINARY_DIR}/plots_data")
 
 add_custom_target(generate_pages COMMAND "bash" 
     "${CMAKE_SOURCE_DIR}/site/generate_site.sh" "${CMAKE_SOURCE_DIR}/site" "${CMAKE_BINARY_DIR}/site"
-    "${CMAKE_CXX_COMPILER}" "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" DEPENDS benchmark)
+    "${CMAKE_CXX_COMPILER}" "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" DEPENDS run_benchmark)
 
 
 add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/site/plots" COMMAND "bash" 
