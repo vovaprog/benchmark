@@ -26,23 +26,43 @@ int main(int argc, char *argv[])
             {
                 if(strcasecmp(argv[i], "MapFind") == 0)
                 {
-                    mapFindBenchmark();
+                    if(!mapFindBenchmark())
+                    {
+                        std::cout << "map find benchmark failed" << std::endl;
+                        return -1;
+                    }
                 }
                 else if(strcasecmp(argv[i], "MapInsert") == 0)
                 {
-                    mapInsertBenchmark();
+                    if(!mapInsertBenchmark())
+                    {
+                        std::cout << "map insert benchmark failed" << std::endl;
+                        return -1;
+                    }
                 }
                 else if(strcasecmp(argv[i], "Arithmetic") == 0)
                 {
-                    arithmeticBenchmark();
+                    if(!arithmeticBenchmark())
+                    {
+                        std::cout << "arithmetic benchmark failed" << std::endl;
+                        return -1;
+                    }
                 }
                 else if(strcasecmp(argv[i], "StringMap") == 0)
                 {
-                    stringMapFindBenchmark();
+                    if(!stringMapFindBenchmark())
+                    {
+                        std::cout << "string map find benchmark failed" << std::endl;
+                        return -1;
+                    }
                 }
                 else if(strcasecmp(argv[i], "Switch") == 0)
                 {
-                    switchBenchmark();
+                    if(!switchBenchmark())
+                    {
+                        std::cout << "switch benchmark failed" << std::endl;
+                        return -1;
+                    }
                 }
                 else
                 {
@@ -58,14 +78,37 @@ int main(int argc, char *argv[])
             "benchmark names: MapFind, MapInsert, Arithmetic, StringMap, Switch\n"
             "if benchmark name is not specified all benchmarks will be executed" << std::endl;
 
-        mapFindBenchmark();
-        mapInsertBenchmark();
-        arithmeticBenchmark();
-        stringMapFindBenchmark();
-        switchBenchmark();
+        if(!mapFindBenchmark())
+        {
+            std::cout << "map find benchmark failed" << std::endl;
+            return -1;
+        }
+
+        if(!mapInsertBenchmark())
+        {
+            std::cout << "map insert benchmark failed" << std::endl;
+            return -1;
+        }
+
+        if(!arithmeticBenchmark())
+        {
+            std::cout << "arithmetic benchmark failed" << std::endl;
+            return -1;
+        }
+
+        if(!stringMapFindBenchmark())
+        {
+            std::cout << "string map find benchmark failed" << std::endl;
+            return -1;
+        }
+
+        if(!switchBenchmark())
+        {
+            std::cout << "map insert benchmark failed" << std::endl;
+            return -1;
+        }
     }
 
     return 0;
 }
-
 

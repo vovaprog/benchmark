@@ -16,6 +16,10 @@ bool runSwitch(BenchmarkParameters &params, int testIndex)
 
     uint64_t ticks = getTicks();
 
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
     while(count < params.iterCount)
     {
         for(int i = 0; i < params.itemCount && count < params.iterCount; ++i, ++count)
@@ -26,6 +30,10 @@ bool runSwitch(BenchmarkParameters &params, int testIndex)
             }
         }
     }
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
 
     params.ticks = getTicks() - ticks;
 
@@ -47,6 +55,10 @@ bool runMap(BenchmarkParameters &params)
 
     uint64_t ticks = getTicks();
 
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
     while(count < params.iterCount)
     {
         for(int i = 0; i < params.itemCount && count < params.iterCount; ++i, ++count)
@@ -59,6 +71,10 @@ bool runMap(BenchmarkParameters &params)
             }
         }
     }
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
 
     params.ticks = getTicks() - ticks;
 
