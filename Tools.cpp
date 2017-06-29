@@ -118,7 +118,7 @@ bool resultToFile(const BenchmarkSet &benchSet)
 
 void randomString(char *s, size_t length)
 {
-    for(size_t i=0;i<length;++i)
+    for(size_t i = 0; i < length; ++i)
     {
         s[i] = 'A' + rand() % 26;
     }
@@ -130,7 +130,7 @@ std::string randomString(size_t length)
 {
     std::string s(length, ' ');
 
-    for(size_t i=0;i<length;++i)
+    for(size_t i = 0; i < length; ++i)
     {
         s[i] = 'A' + rand() % 26;
     }

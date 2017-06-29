@@ -35,15 +35,15 @@ struct DataAvlSet: public boost::intrusive::avl_set_base_hook<boost::intrusive::
 template<typename DataType>
 struct DataCompare
 {
-   bool operator()(uint64_t key, const DataType &d) const
-   {
-       return key < d.key;
-   }
+    bool operator()(uint64_t key, const DataType &d) const
+    {
+        return key < d.key;
+    }
 
-   bool operator()(const DataType &d, uint64_t key) const
-   {
-       return d.key < key;
-   }
+    bool operator()(const DataType &d, uint64_t key) const
+    {
+        return d.key < key;
+    }
 };
 
 }
