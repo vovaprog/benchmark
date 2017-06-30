@@ -14,6 +14,10 @@ Results
 Build and run
 -------------
 
+Install required packages. For debian/ubuntu:<br/>
+apt-get install g++ cmake libboost-dev libboost-filesystem-dev<br/>
+apt-get install markdown python-matplotlib<br/>
+
 Create build directory, enter it and run commands:<br/>
 
 cmake -DCMAKE\_BUILD\_TYPE=Release /path/to/benchmark/source/code<br/>
