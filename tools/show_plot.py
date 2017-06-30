@@ -1,10 +1,14 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from os import listdir
-from os.path import isfile, join
-import re
 import sys
 import os
+import re
+import numpy as np
+
+import matplotlib
+if len(sys.argv) > 2:
+    # next line is needed to generate plot files on a system without X windows
+    matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
 
 plotCounter = 0
 lineStyles = ["-", "--", "-.", ":"]
@@ -36,18 +40,18 @@ def plotFolder(folderName, prefix):
     prefixSep = ""
     if len(prefix) > 0:
         prefixSep = " "
-    
-    for f in listdir(folderName):
-        if isfile(join(folderName, f)):
+
+    for f in os.listdir(folderName):
+        if os.path.isfile(os.path.join(folderName, f)):
             files.append(f)
         else:
-            plotFolder(join(folderName, f), prefix + prefixSep + f)
+            plotFolder(os.path.join(folderName, f), prefix + prefixSep + f)
 
     files = sorted(files)
-    
+
     for f in files:
-        plotFile(join(folderName, f), prefix)
-        
+        plotFile(os.path.join(folderName, f), prefix)
+
 
 folderName = "./build_release/plots"
 
@@ -62,17 +66,16 @@ plt.xlabel("items")
 plt.ylabel("microseconds")
 
 # remove plot border
-#plt.figure(1).tight_layout(pad=0)
+# plt.figure(1).tight_layout(pad=0)
 
 
 if len(sys.argv) > 2:
     width = 700.0
     height = width * 0.6
     dpi = plt.figure(1).get_dpi()
-    plt.figure(1).set_size_inches(width/float(dpi), height/float(dpi))
+    plt.figure(1).set_size_inches(width / float(dpi), height / float(dpi))
 
-    #os.makedirs(os.path.dirname(sys.argv[2]))
-    plt.savefig(sys.argv[2])     
+    # os.makedirs(os.path.dirname(sys.argv[2]))
+    plt.savefig(sys.argv[2])
 else:
     plt.show()
-
