@@ -25,7 +25,7 @@ struct CharPointerEqual
 };
 
 
-struct CharPointerHash
+struct CharPointerHashCombine
 {
     size_t operator()(const char *a) const
     {
@@ -39,6 +39,30 @@ struct CharPointerHash
         return seed;
     }
 };
+
+
+struct CharPointerHashFnv1
+{
+    static const uint64_t fnvOffsetBasis = 0xcbf29ce484222325ULL;
+    static const uint64_t fnvPrime = 0x100000001b3ULL;
+
+    BOOST_STATIC_ASSERT(std::is_same<size_t, uint64_t>::value);
+    BOOST_STATIC_ASSERT(sizeof(char) == 1);
+
+    size_t operator()(const char *a) const
+    {
+        uint64_t hash = fnvOffsetBasis;
+
+        for (; *a != 0; ++a)
+        {
+            hash *= fnvPrime;
+            hash ^= static_cast<uint8_t>(*a);
+        }
+
+        return static_cast<size_t>(hash);
+    }
+};
+
 
 template<typename MapType, typename KeyType>
 bool benchStringMapFind(BenchmarkParameters &params, std::vector<KeyType> &keys)
@@ -115,12 +139,26 @@ bool benchStdUnorderedMapCharPointer(BenchmarkParameters &params)
     std::vector<const char*> &keys = *static_cast<std::vector<const char*> *>(params.arg0);
 
     bool result = benchStringMapFind <
-                  std::unordered_map<const char*, Data, CharPointerHash, CharPointerEqual >,
+                  std::unordered_map<const char*, Data, CharPointerHashCombine, CharPointerEqual >,
                   const char* > (params, keys);
 
     params.testName = "std unordered_map char p";
     return result;
 }
+
+
+bool benchStdUnorderedMapCharPointerFnv1(BenchmarkParameters &params)
+{
+    std::vector<const char*> &keys = *static_cast<std::vector<const char*> *>(params.arg0);
+
+    bool result = benchStringMapFind <
+                  std::unordered_map<const char*, Data, CharPointerHashFnv1, CharPointerEqual >,
+                  const char* > (params, keys);
+
+    params.testName = "std unordered_map char p fnv1";
+    return result;
+}
+
 
 bool benchStdUnorderedMapString(BenchmarkParameters &params)
 {
@@ -164,12 +202,26 @@ bool benchBoostUnorderedMapCharPointer(BenchmarkParameters &params)
     std::vector<const char*> &keys = *static_cast<std::vector<const char*> *>(params.arg0);
 
     bool result = benchStringMapFind<boost::unordered_map<
-                  const char*, Data, CharPointerHash, CharPointerEqual>,
+                  const char*, Data, CharPointerHashCombine, CharPointerEqual>,
                   const char*>(params, keys);
 
     params.testName = "boost unordered_map char p";
     return result;
 }
+
+
+bool benchBoostUnorderedMapCharPointerFnv1(BenchmarkParameters &params)
+{
+    std::vector<const char*> &keys = *static_cast<std::vector<const char*> *>(params.arg0);
+
+    bool result = benchStringMapFind<boost::unordered_map<
+                  const char*, Data, CharPointerHashFnv1, CharPointerEqual>,
+                  const char*>(params, keys);
+
+    params.testName = "boost unordered_map char p fnv1";
+    return result;
+}
+
 
 bool benchBoostUnorderedMapString(BenchmarkParameters &params)
 {
@@ -274,6 +326,12 @@ bool stringMapFindBenchmark(int64_t itemCountStart, int64_t itemCountEnd, int64_
         return false;
     }
 
+    std::cout << "std unordered_map char pointer fnv1" << std::endl;
+    if(!runBenchmarkSet<benchStdUnorderedMapCharPointerFnv1>(benchSet))
+    {
+        return false;
+    }
+
     std::cout << "std unordered_map string" << std::endl;
     if(!runBenchmarkSet<benchStdUnorderedMapString>(benchSet))
     {
@@ -282,6 +340,12 @@ bool stringMapFindBenchmark(int64_t itemCountStart, int64_t itemCountEnd, int64_
 
     std::cout << "boost unordered_map char pointer" << std::endl;
     if(!runBenchmarkSet<benchBoostUnorderedMapCharPointer>(benchSet))
+    {
+        return false;
+    }
+
+    std::cout << "boost unordered_map char pointer fnv1" << std::endl;
+    if(!runBenchmarkSet<benchBoostUnorderedMapCharPointerFnv1>(benchSet))
     {
         return false;
     }
@@ -316,6 +380,16 @@ bool stringMapFindBenchmark()
     }
 
     if(!stringMapFindBenchmark(10, 1000, 20, 16))
+    {
+        return false;
+    }
+
+    if(!stringMapFindBenchmark(10, 100000, 5000, 4))
+    {
+        return false;
+    }
+
+    if(!stringMapFindBenchmark(10, 100000, 5000, 16))
     {
         return false;
     }
