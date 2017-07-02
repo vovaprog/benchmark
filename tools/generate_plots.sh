@@ -92,8 +92,10 @@ function generate_string_maps {
     mkdir $CURTEMP
     
     cp "$INDIR/string map find/$1/$2/std unordered_map char p.txt" "$CURTEMP"
+    cp "$INDIR/string map find/$1/$2/std unordered_map char p fnv1.txt" "$CURTEMP"
     cp "$INDIR/string map find/$1/$2/std unordered_map string.txt" "$CURTEMP"    
     cp "$INDIR/string map find/$1/$2/boost unordered_map char p.txt" "$CURTEMP"
+    cp "$INDIR/string map find/$1/$2/boost unordered_map char p fnv1.txt" "$CURTEMP"
     cp "$INDIR/string map find/$1/$2/boost unordered_map string.txt" "$CURTEMP"
     
     python $TOOLDIR/show_plot.py "$CURTEMP" "$OUTDIR/string_unordered_map_find_${1}_${2}.png"
@@ -127,11 +129,13 @@ generate_maps 100000 "boost map" "std unordered_map" "std vector"
 
 echo "plots generation - string maps..."
 
-generate_string_maps 16 100 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
+generate_string_maps 16 300 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
 generate_string_maps 16 1000 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
+generate_string_maps 16 100000 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
 
-generate_string_maps 4 100 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
+generate_string_maps 4 300 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
 generate_string_maps 4 1000 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
+generate_string_maps 4 100000 "std map string" "std map char p" "std unordered_map string" "std unordered_map char p"
 
 #===============================================================================
 

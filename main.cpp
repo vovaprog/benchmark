@@ -16,9 +16,17 @@ int main(int argc, char *argv[])
 
     if(argc > 1)
     {
-        if(strcasecmp(argv[1], "GetBoostVersion") == 0)
+        if(strcasecmp(argv[1], "BoostVersion") == 0)
         {
             std::cout << BOOST_LIB_VERSION << std::endl;
+        }
+        else if(strcasecmp(argv[1], "StdVersion") == 0)
+        {
+#ifdef __GLIBCXX__
+            std::cout << __GLIBCXX__ << std::endl;
+#else
+            std::cout << "-" << std::endl;
+#endif
         }
         else
         {

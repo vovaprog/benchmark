@@ -364,12 +364,12 @@ bool stringMapFindBenchmark()
 {
     std::cout << "===== string map find benchmark =====" << std::endl;
 
-    if(!stringMapFindBenchmark(10, 100, 1, 4))
+    if(!stringMapFindBenchmark(10, 300, 2, 4))
     {
         return false;
     }
 
-    if(!stringMapFindBenchmark(10, 100, 1, 16))
+    if(!stringMapFindBenchmark(10, 300, 2, 16))
     {
         return false;
     }

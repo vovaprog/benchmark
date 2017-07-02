@@ -6,6 +6,7 @@ c++ compiler: CPP_COMPILER
 c++ compiler version: CPP_COMPILER_VERSION  
 compiler flags: CPP_FLAGS  
 cpu: CPU_INFO  
+std: STD_VERSION  
 boost: BOOST_VERSION  
 os: OS_INFO  
 
