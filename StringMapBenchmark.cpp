@@ -6,63 +6,8 @@
 #include <string.h>
 #include <boost/container/map.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/functional/hash.hpp>
 
-struct CharPointerLess
-{
-    bool operator()(const char *a, const char *b) const
-    {
-        return strcmp(a, b) < 0;
-    }
-};
-
-struct CharPointerEqual
-{
-    bool operator()(const char *a, const char *b) const
-    {
-        return strcmp(a, b) == 0;
-    }
-};
-
-
-struct CharPointerHashCombine
-{
-    size_t operator()(const char *a) const
-    {
-        std::size_t seed = 0;
-
-        for(size_t i = 0; a[i] != 0; ++i)
-        {
-            boost::hash_combine(seed, a[i]);
-        }
-
-        return seed;
-    }
-};
-
-
-struct CharPointerHashFnv1
-{
-    static const uint64_t fnvOffsetBasis = 0xcbf29ce484222325ULL;
-    static const uint64_t fnvPrime = 0x100000001b3ULL;
-
-    BOOST_STATIC_ASSERT(std::is_same<size_t, uint64_t>::value);
-    BOOST_STATIC_ASSERT(sizeof(char) == 1);
-
-    size_t operator()(const char *a) const
-    {
-        uint64_t hash = fnvOffsetBasis;
-
-        for (; *a != 0; ++a)
-        {
-            hash *= fnvPrime;
-            hash ^= static_cast<uint8_t>(*a);
-        }
-
-        return static_cast<size_t>(hash);
-    }
-};
-
+#include <StringUtils.h>
 
 template<typename MapType, typename KeyType>
 bool benchStringMapFind(BenchmarkParameters &params, std::vector<KeyType> &keys)
@@ -142,7 +87,7 @@ bool benchStdUnorderedMapCharPointer(BenchmarkParameters &params)
                   std::unordered_map<const char*, Data, CharPointerHashCombine, CharPointerEqual >,
                   const char* > (params, keys);
 
-    params.testName = "std unordered_map char p";
+    params.testName = "std unordered_map char p combine";
     return result;
 }
 
@@ -156,6 +101,19 @@ bool benchStdUnorderedMapCharPointerFnv1(BenchmarkParameters &params)
                   const char* > (params, keys);
 
     params.testName = "std unordered_map char p fnv1";
+    return result;
+}
+
+
+bool benchStdUnorderedMapCharPointerMurmur(BenchmarkParameters &params)
+{
+    std::vector<const char*> &keys = *static_cast<std::vector<const char*> *>(params.arg0);
+
+    bool result = benchStringMapFind <
+                  std::unordered_map<const char*, Data, CharPointerHashMurmur, CharPointerEqual >,
+                  const char* > (params, keys);
+
+    params.testName = "std unordered_map char p murmur";
     return result;
 }
 
@@ -205,7 +163,7 @@ bool benchBoostUnorderedMapCharPointer(BenchmarkParameters &params)
                   const char*, Data, CharPointerHashCombine, CharPointerEqual>,
                   const char*>(params, keys);
 
-    params.testName = "boost unordered_map char p";
+    params.testName = "boost unordered_map char p combine";
     return result;
 }
 
@@ -219,6 +177,19 @@ bool benchBoostUnorderedMapCharPointerFnv1(BenchmarkParameters &params)
                   const char*>(params, keys);
 
     params.testName = "boost unordered_map char p fnv1";
+    return result;
+}
+
+
+bool benchBoostUnorderedMapCharPointerMurmur(BenchmarkParameters &params)
+{
+    std::vector<const char*> &keys = *static_cast<std::vector<const char*> *>(params.arg0);
+
+    bool result = benchStringMapFind<boost::unordered_map<
+                  const char*, Data, CharPointerHashMurmur, CharPointerEqual>,
+                  const char*>(params, keys);
+
+    params.testName = "boost unordered_map char p murmur";
     return result;
 }
 
@@ -332,6 +303,12 @@ bool stringMapFindBenchmark(int64_t itemCountStart, int64_t itemCountEnd, int64_
         return false;
     }
 
+    std::cout << "std unordered_map char pointer murmur" << std::endl;
+    if(!runBenchmarkSet<benchStdUnorderedMapCharPointerMurmur>(benchSet))
+    {
+        return false;
+    }
+
     std::cout << "std unordered_map string" << std::endl;
     if(!runBenchmarkSet<benchStdUnorderedMapString>(benchSet))
     {
@@ -350,6 +327,12 @@ bool stringMapFindBenchmark(int64_t itemCountStart, int64_t itemCountEnd, int64_
         return false;
     }
 
+    std::cout << "boost unordered_map char pointer murmur" << std::endl;
+    if(!runBenchmarkSet<benchBoostUnorderedMapCharPointerMurmur>(benchSet))
+    {
+        return false;
+    }
+
     std::cout << "boost unordered_map string" << std::endl;
     if(!runBenchmarkSet<benchBoostUnorderedMapString>(benchSet))
     {
@@ -364,32 +347,17 @@ bool stringMapFindBenchmark()
 {
     std::cout << "===== string map find benchmark =====" << std::endl;
 
-    if(!stringMapFindBenchmark(10, 300, 2, 4))
+    if(!stringMapFindBenchmark(10, 300, 2, 15))
     {
         return false;
     }
 
-    if(!stringMapFindBenchmark(10, 300, 2, 16))
+    if(!stringMapFindBenchmark(10, 1000, 20, 15))
     {
         return false;
     }
 
-    if(!stringMapFindBenchmark(10, 1000, 20, 4))
-    {
-        return false;
-    }
-
-    if(!stringMapFindBenchmark(10, 1000, 20, 16))
-    {
-        return false;
-    }
-
-    if(!stringMapFindBenchmark(10, 100000, 5000, 4))
-    {
-        return false;
-    }
-
-    if(!stringMapFindBenchmark(10, 100000, 5000, 16))
+    if(!stringMapFindBenchmark(10, 100000, 5000, 15))
     {
         return false;
     }

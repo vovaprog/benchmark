@@ -12,6 +12,7 @@ set(SOURCE
     MapBenchmark.h MapBenchmark.cpp
     IntrusiveMapBenchmark.h IntrusiveMapBenchmark.cpp
     StringMapBenchmark.h StringMapBenchmark.cpp
+    StringUtils.h
     SwitchBenchmark.h SwitchBenchmark.cpp
     Tools.h Tools.cpp)
 
@@ -29,13 +30,16 @@ add_custom_target(run_benchmark DEPENDS "${CMAKE_BINARY_DIR}/plots_data")
 add_custom_target(generate_pages COMMAND "bash" 
     "${CMAKE_SOURCE_DIR}/site/generate_site.sh" "${CMAKE_SOURCE_DIR}/site" "${CMAKE_BINARY_DIR}/site"
     "${CMAKE_CXX_COMPILER}" "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}" DEPENDS run_benchmark)
+add_custom_target(generate_pages_nodeps COMMAND "bash" 
+    "${CMAKE_SOURCE_DIR}/site/generate_site.sh" "${CMAKE_SOURCE_DIR}/site" "${CMAKE_BINARY_DIR}/site"
+    "${CMAKE_CXX_COMPILER}" "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 
 
 add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/site/plots" COMMAND "bash" 
     "${CMAKE_SOURCE_DIR}/tools/generate_plots.sh" "${CMAKE_BINARY_DIR}/plots_data" 
-    "${CMAKE_BINARY_DIR}/site/plots" "${CMAKE_SOURCE_DIR}/tools"
-    DEPENDS run_benchmark)
-add_custom_target(generate_plots DEPENDS "${CMAKE_BINARY_DIR}/site/plots")
+    "${CMAKE_BINARY_DIR}/site/plots" "${CMAKE_SOURCE_DIR}/tools")
+add_custom_target(generate_plots DEPENDS run_benchmark "${CMAKE_BINARY_DIR}/site/plots")
+add_custom_target(generate_plots_nodeps DEPENDS "${CMAKE_BINARY_DIR}/site/plots")
 
 
 add_custom_target(site DEPENDS generate_pages generate_plots)
