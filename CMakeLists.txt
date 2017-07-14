@@ -11,6 +11,7 @@ set(SOURCE
     ArithmeticBenchmark.h ArithmeticBenchmark.cpp
     MapBenchmark.h MapBenchmark.cpp
     IntrusiveMapBenchmark.h IntrusiveMapBenchmark.cpp
+    QueueBenchmark.h QueueBenchmark.cpp
     StringMapBenchmark.h StringMapBenchmark.cpp
     StringUtils.h
     SwitchBenchmark.h SwitchBenchmark.cpp

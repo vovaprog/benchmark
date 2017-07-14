@@ -74,7 +74,7 @@ plt.yticks(indexes, names)
 # remove plot border
 plt.figure(1).tight_layout(pad=0)
 
-if len(sys.argv) > 1:
+if len(sys.argv) > 2:
     plt.savefig(sys.argv[2])
 else:
     plt.show()

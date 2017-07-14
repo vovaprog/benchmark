@@ -8,6 +8,7 @@
 #include <ArithmeticBenchmark.h>
 #include <StringMapBenchmark.h>
 #include <SwitchBenchmark.h>
+#include <QueueBenchmark.h>
 
 
 int main(int argc, char *argv[])
@@ -72,6 +73,14 @@ int main(int argc, char *argv[])
                         return -1;
                     }
                 }
+                else if(strcasecmp(argv[i], "Queue") == 0)
+                {
+                    if(!queueBenchmark())
+                    {
+                        std::cout << "queue benchmark failed" << std::endl;
+                        return -1;
+                    }
+                }
                 else
                 {
                     std::cout << "invalid benchmark name: " << argv[i] << std::endl;
@@ -113,6 +122,12 @@ int main(int argc, char *argv[])
         if(!switchBenchmark())
         {
             std::cout << "map insert benchmark failed" << std::endl;
+            return -1;
+        }
+
+        if(!queueBenchmark())
+        {
+            std::cout << "queue benchmark failed" << std::endl;
             return -1;
         }
     }
