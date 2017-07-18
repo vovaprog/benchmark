@@ -9,6 +9,7 @@
 #include <StringMapBenchmark.h>
 #include <SwitchBenchmark.h>
 #include <QueueBenchmark.h>
+#include <AlignBenchmark.h>
 
 
 int main(int argc, char *argv[])
@@ -81,6 +82,14 @@ int main(int argc, char *argv[])
                         return -1;
                     }
                 }
+                else if(strcasecmp(argv[i], "Align") == 0)
+                {
+                    if(!alignBenchmark())
+                    {
+                        std::cout << "align benchmark failed" << std::endl;
+                        return -1;
+                    }
+                }
                 else
                 {
                     std::cout << "invalid benchmark name: " << argv[i] << std::endl;
@@ -128,6 +137,12 @@ int main(int argc, char *argv[])
         if(!queueBenchmark())
         {
             std::cout << "queue benchmark failed" << std::endl;
+            return -1;
+        }
+
+        if(!alignBenchmark())
+        {
+            std::cout << "align benchmark failed" << std::endl;
             return -1;
         }
     }
