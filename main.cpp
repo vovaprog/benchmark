@@ -10,6 +10,7 @@
 #include <SwitchBenchmark.h>
 #include <QueueBenchmark.h>
 #include <AlignBenchmark.h>
+#include <ProducerConsumer/ProducerConsumerBenchmark.h>
 
 
 int main(int argc, char *argv[])
@@ -87,6 +88,14 @@ int main(int argc, char *argv[])
                     if(!alignBenchmark())
                     {
                         std::cout << "align benchmark failed" << std::endl;
+                        return -1;
+                    }
+                }
+                else if(strcasecmp(argv[i], "ProducerConsumer") == 0)
+                {
+                    if(!producerConsumerBenchmark())
+                    {
+                        std::cout << "producer consumer benchmark failed" << std::endl;
                         return -1;
                     }
                 }

@@ -16,9 +16,11 @@ set(SOURCE
     StringMapBenchmark.h StringMapBenchmark.cpp
     StringUtils.h
     SwitchBenchmark.h SwitchBenchmark.cpp
-    Tools.h Tools.cpp)
+    Tools.h Tools.cpp
+    ProducerConsumer/ProducerConsumerBenchmark.h ProducerConsumer/ProducerConsumerBenchmark.cpp
+    ProducerConsumer/Producer.h ProducerConsumer/Consumer.h ProducerConsumer/QueueBoostLockfree.h)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -Wall -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -pthread -Wall -pedantic")
 
 add_executable(benchmark ${SOURCE})
 
