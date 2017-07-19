@@ -6,7 +6,7 @@
 #include <mutex>
 #include <boost/lockfree/spsc_queue.hpp>
 #include <boost/lockfree/queue.hpp>
-
+#include <tbb/concurrent_queue.h>
 
 template<typename QueueType>
 bool queueBench(BenchmarkParameters &params)
@@ -62,6 +62,72 @@ bool queueBenchPopParameter(BenchmarkParameters &params)
         uint64_t x;
         q.pop(x);
         q.push(x);
+    }
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
+    params.ticks = getTicks() - ticks;
+
+    return true;
+}
+
+
+template<typename QueueType>
+bool queueBenchTryPop(BenchmarkParameters &params)
+{
+    QueueType q;
+
+    for (int i=0;i<params.itemCount;++i)
+    {
+        q.push(i);
+    }
+
+    uint64_t ticks = getTicks();
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
+    for (int i=0;i<params.iterCount;++i)
+    {
+        uint64_t x;
+        q.try_pop(x);
+        q.push(x);
+    }
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
+    params.ticks = getTicks() - ticks;
+
+    return true;
+}
+
+
+template<typename QueueType>
+bool queueBenchTryPushTryPop(BenchmarkParameters &params)
+{
+    QueueType q;
+
+    for (int i=0;i<params.itemCount;++i)
+    {
+        q.push(i);
+    }
+
+    uint64_t ticks = getTicks();
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
+    for (int i=0;i<params.iterCount;++i)
+    {
+        uint64_t x;
+        q.try_pop(x);
+        q.try_push(x);
     }
 
     //=================================================================================
@@ -145,6 +211,18 @@ bool stdQueueLockBenchmark(BenchmarkParameters &params)
 }
 
 
+bool tbbConcurrentQueueBenchmark(BenchmarkParameters &params)
+{
+    return queueBenchTryPop<tbb::concurrent_queue<uint64_t>>(params);
+}
+
+
+bool tbbConcurrentBoundedQueueBenchmark(BenchmarkParameters &params)
+{
+    return queueBenchTryPushTryPop<tbb::concurrent_bounded_queue<uint64_t>>(params);
+}
+
+
 bool queueBenchmark()
 {
     std::cout << "===== queue benchmark =====" << std::endl;
@@ -155,29 +233,39 @@ bool queueBenchmark()
     bench.params.itemCount = 100000;
     bench.params.iterCount = 10000000;
 
-    std::cout << "std queue" << std::endl;
     bench.params.testName = "std";
+    std::cout << bench.params.testName << std::endl;
     stdQueueBenchmark(bench.params);
     resultToFile(bench);
 
-    std::cout << "std queue<std::list>" << std::endl;
     bench.params.testName = "std list";
+    std::cout << bench.params.testName << std::endl;
     stdQueueListBenchmark(bench.params);
     resultToFile(bench);
 
-    std::cout << "spsc_queue" << std::endl;
-    bench.params.testName = "spsc";
+    bench.params.testName = "spsc_queue";
+    std::cout << bench.params.testName << std::endl;
     boostSpscQueueBenchmark(bench.params);
     resultToFile(bench);
 
-    std::cout << "lockfree queue" << std::endl;
     bench.params.testName = "lockfree";
+    std::cout << bench.params.testName << std::endl;
     boostLockfreeQueueBenchmark(bench.params);
     resultToFile(bench);
 
-    std::cout << "std lock" << std::endl;
     bench.params.testName = "std lock";
+    std::cout << bench.params.testName << std::endl;
     stdQueueLockBenchmark(bench.params);
+    resultToFile(bench);
+
+    bench.params.testName = "tbb concurrent_queue";
+    std::cout << bench.params.testName << std::endl;
+    tbbConcurrentQueueBenchmark(bench.params);
+    resultToFile(bench);
+
+    bench.params.testName = "tbb concurrent_bounded_queue";
+    std::cout << bench.params.testName << std::endl;
+    tbbConcurrentBoundedQueueBenchmark(bench.params);
     resultToFile(bench);
 
     return true;

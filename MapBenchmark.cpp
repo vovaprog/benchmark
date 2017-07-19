@@ -10,6 +10,7 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/unordered_map.hpp>
 #include <iostream>
+#include <tbb/concurrent_hash_map.h>
 
 
 template<typename T>
@@ -129,6 +130,62 @@ bool benchMapFind(BenchmarkParameters &params)
 }
 
 
+bool benchMapFindTbbConcurrentMap(BenchmarkParameters &params)
+{
+    typedef tbb::concurrent_hash_map<uint64_t, Data> MapType;
+    MapType m;
+
+    m.clear();
+
+    std::vector<uint64_t> &keys = *reinterpret_cast<std::vector<uint64_t>*>(params.arg0);
+
+    for(int i = 0; i < params.itemCount; ++i)
+    {
+        Data d;
+        d.key = keys[i];
+        if(!m.insert(MapType::value_type(keys[i], d)))
+        {
+            return false;
+        }
+    }
+
+
+    if(m.size() != static_cast<uint64_t>(params.itemCount))
+    {
+        return false;
+    }
+
+    int64_t searchCounter = 0;
+
+    uint64_t ticks = getTicks();
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
+    while(searchCounter < params.iterCount)
+    {
+        for(int i = 0; i < params.itemCount && searchCounter < params.iterCount; ++i, ++searchCounter)
+        {
+            MapType::const_accessor acc;
+
+            if(!m.find(acc, keys[i]) || acc->second.key != keys[i])
+            {
+                return false;
+            }
+        }
+    }
+
+    //=================================================================================
+    // benchmark code
+    //=================================================================================
+
+    params.ticks = getTicks() - ticks;
+
+    return true;
+}
+
+
 bool benchStdMapFind(BenchmarkParameters &params)
 {
     bool result = benchMapFind<std::map<uint64_t, Data>>(params);
@@ -181,6 +238,14 @@ bool benchBoostUnorderedMapFindNoHash(BenchmarkParameters &params)
 {
     bool result = benchMapFind<boost::unordered_map<uint64_t, Data, HashNone<uint64_t>>>(params);
     params.testName = "boost unordered_map no hash";
+    return result;
+}
+
+
+bool benchTbbConcurrentHashMap(BenchmarkParameters &params)
+{
+    bool result = benchMapFindTbbConcurrentMap(params);
+    params.testName = "tbb concurrent_hash_map";
     return result;
 }
 
@@ -394,7 +459,6 @@ bool benchMapsFind(int64_t itemCountStart, int64_t itemCountEnd, int64_t itemCou
     benchSet.prefixes.push_back("map find");
     benchSet.prefixes.push_back(std::to_string(itemCountEnd));
 
-
     std::cout << "std map" << std::endl;
     if(!runBenchmarkSet<benchStdMapFind>(benchSet))
     {
@@ -457,6 +521,12 @@ bool benchMapsFind(int64_t itemCountStart, int64_t itemCountEnd, int64_t itemCou
 
     std::cout << "boost intrusive avl_set" << std::endl;
     if(!runBenchmarkSet<intrusiveAvlSetFindBenchmark>(benchSet))
+    {
+        return false;
+    }
+
+    std::cout << "tbb concurrent_hash_map" << std::endl;
+    if(!runBenchmarkSet<benchTbbConcurrentHashMap>(benchSet))
     {
         return false;
     }
