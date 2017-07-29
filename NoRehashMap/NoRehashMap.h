@@ -31,8 +31,9 @@ public:
             return std::pair<iterator, bool>(iter, false);
         }
 
-        if (insertTable0->load_factor() >= insertTable0->max_load_factor())
+        if (insertTable0->size() >= insertTable0->max_size())
         {
+            std::cout << insertTable1->size() << " " << insertTable0->size() << std::endl;
             assert(insertTable1->size() == 0);
 
             insertTable1->reallocate(insertTable0->size() * 2);
@@ -55,7 +56,7 @@ public:
             std::swap(findTable0, findTable1);
         }
 
-        return insertTable0->insert(value);
+        return insertTable0->insertHashNoCheck(value, hash);
     }
 
     iterator findHash(const K &key, size_t hash)

@@ -7,8 +7,13 @@ int main()
     typedef NoRehashMap<int, int> MapType;
     MapType m;
 
-    MapType::value_type val(3, 4);
-    m.insert(val);
+    for(int i=0;i<100;++i)
+    {
+        std::cout << i << std::endl;
+
+        MapType::value_type val(i, i);
+        m.insert(val);
+    }
     
     MapType::iterator iter = m.find(3);
 
