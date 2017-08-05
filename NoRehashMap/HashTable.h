@@ -36,6 +36,7 @@ public:
         value_type value;
         size_t hash;
         Node *next = 0;
+        bool lastInBucket = false;
         //Node *nextIter;
     };
 
@@ -98,7 +99,9 @@ public:
             }
 
             buckets[bucketIndex] = &beginNode;
+            newNode->next = beginNode.next;
             beginNode.next = newNode;
+            newNode->lastInBucket = true;
         }
         else
         {
@@ -124,12 +127,15 @@ public:
             }
             buckets[bucketIndex] = &beginNode;
             beginNode.next = node;
+            node->lastInBucket = true;
         }
         else
         {
             node->next = buckets[bucketIndex]->next;
             buckets[bucketIndex]->next = node;
         }
+
+        ++_size;
     }
 
     void unlink(Node *node)
@@ -154,12 +160,17 @@ public:
             }
         }
 
+        assert(_size > 0);
         --_size;
     }
 
     void unlinkBegin()
     {
+        assert(beginNode.next != nullptr);
+
         unlink(beginNode.next);
+
+        //assert(beginNode.next != nullptr);
 
         /*assert(_begin.node != nullptr);
 
@@ -184,8 +195,8 @@ public:
             nodePtr->nextIter = oldBegin.node->nextIter;
         }*/
 
-        assert(_size > 0);
-        --_size;
+        /*assert(_size > 0);
+        --_size;*/
     }
 
 
@@ -195,12 +206,24 @@ public:
 
         Node *nodePtr = buckets[bucketIndex];
 
+        if (nodePtr == nullptr) {
+            return end();
+        }
+
+        nodePtr = nodePtr->next;
+
         while(nodePtr != nullptr)
         {
             if (nodePtr->hash == hash && equalComparer(nodePtr->value.first, key))
             {
                 return iterator(this, nodePtr);
             }
+
+            if (nodePtr->lastInBucket == true)
+            {
+                break;
+            }
+
             nodePtr = nodePtr->next;
         }
 

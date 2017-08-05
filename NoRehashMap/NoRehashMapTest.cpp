@@ -2,23 +2,27 @@
 #include <NoRehashMap.h>
 
 int main()
-//bool noRehashMapTest()
 {
     typedef NoRehashMap<int, int> MapType;
     MapType m;
 
-    for(int i=0;i<100;++i)
+    for(int i=1;i<=31;++i)
     {
         std::cout << i << std::endl;
 
         MapType::value_type val(i, i);
         m.insert(val);
     }
-    
-    MapType::iterator iter = m.find(3);
 
+    MapType::iterator iter = m.find(30);
     std::cout << iter->second << std::endl;
 
-    //return true;
+    /*for(int i=1;i<=100;++i)
+    {
+        MapType::iterator iter = m.find(i);
+        assert(iter->second == i);
+        std::cout << iter->second << std::endl;
+    }*/
+
     return 0;
 }
