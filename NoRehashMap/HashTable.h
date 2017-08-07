@@ -107,6 +107,7 @@ public:
         {
             newNode->next = prev->next;
             prev->next = newNode;
+            newNode->lastInBucket = false;
         }
 
         ++_size;
@@ -126,6 +127,7 @@ public:
                 buckets[beginNode.next->hash % bucketCount] = node;
             }
             buckets[bucketIndex] = &beginNode;
+            node->next = beginNode.next;
             beginNode.next = node;
             node->lastInBucket = true;
         }
@@ -133,6 +135,7 @@ public:
         {
             node->next = buckets[bucketIndex]->next;
             buckets[bucketIndex]->next = node;
+            node->lastInBucket = false;
         }
 
         ++_size;

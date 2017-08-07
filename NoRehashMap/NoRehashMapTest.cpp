@@ -6,7 +6,7 @@ int main()
     typedef NoRehashMap<int, int> MapType;
     MapType m;
 
-    for(int i=1;i<=31;++i)
+    for(int i=1;i<=10000;++i)
     {
         std::cout << i << std::endl;
 
@@ -14,15 +14,12 @@ int main()
         m.insert(val);
     }
 
-    MapType::iterator iter = m.find(30);
-    std::cout << iter->second << std::endl;
-
-    /*for(int i=1;i<=100;++i)
+    for(int i=1;i<=10000;++i)
     {
         MapType::iterator iter = m.find(i);
         assert(iter->second == i);
         std::cout << iter->second << std::endl;
-    }*/
+    }
 
     return 0;
 }
