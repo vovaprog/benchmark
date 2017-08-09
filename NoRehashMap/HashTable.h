@@ -5,20 +5,15 @@
 
 
 template<typename K, typename T,
-         typename HashType=boost::hash<K>,
+         typename HashAlgoType=boost::hash<K>,
          typename EqualType=std::equal_to<K>>
 class HashTable {
 public:
     typedef std::pair<K, T> value_type;
 
-    HashTable():buckets(nullptr), _size(0)
+    HashTable(): buckets(nullptr), _size(0)
     {
         reallocate(11);
-
-        /*bucketCount = nextPrime(11);
-        std::cout << "bucket count:" << bucketCount << std::endl;
-        buckets = new Node*[bucketCount];
-        memset(buckets, 0, bucketCount * sizeof(Node*));*/
     }
 
     static size_t nextPrime(size_t num)
@@ -33,11 +28,14 @@ public:
     }
 
     struct Node {
+        Node *next = nullptr;
         value_type value;
         size_t hash;
-        Node *next = 0;
         bool lastInBucket = false;
-        //Node *nextIter;
+    };
+
+    struct EmptyNode {
+        Node *next = nullptr;
     };
 
 
@@ -45,10 +43,9 @@ public:
     public:
         iterator(): table(nullptr), node(nullptr)
         {
-
         }
 
-        iterator(HashTable<K, T, HashType, EqualType> *table, Node *node):
+        iterator(HashTable<K, T, HashAlgoType, EqualType> *table, Node *node):
             table(table), node(node)
         {
         }
@@ -58,12 +55,11 @@ public:
         }
 
         bool operator==(const iterator& iter) const {
-            return (iter.table == table && iter.node == node) ||
-                   (node == nullptr && iter.node == nullptr);
+            return node == iter.node;
         }
 
         bool operator!=(const iterator& iter) const {
-            return iter.table != table || iter.node != node;
+            return node != iter.node;
         }
 
         iterator& operator++()
@@ -75,9 +71,7 @@ public:
             return *this;
         }
 
-    //private:
-        HashTable<K, T, HashType, EqualType> *table;
-        //size_t bucketIndex;
+        HashTable<K, T, HashAlgoType, EqualType> *table;
         Node *node;
     };
 
@@ -98,7 +92,7 @@ public:
                 buckets[beginNode.next->hash % bucketCount] = newNode;
             }
 
-            buckets[bucketIndex] = &beginNode;
+            buckets[bucketIndex] = reinterpret_cast<Node*>(&beginNode);
             newNode->next = beginNode.next;
             beginNode.next = newNode;
             newNode->lastInBucket = true;
@@ -126,7 +120,7 @@ public:
             {
                 buckets[beginNode.next->hash % bucketCount] = node;
             }
-            buckets[bucketIndex] = &beginNode;
+            buckets[bucketIndex] = reinterpret_cast<Node*>(&beginNode);
             node->next = beginNode.next;
             beginNode.next = node;
             node->lastInBucket = true;
@@ -141,6 +135,7 @@ public:
         ++_size;
     }
 
+
     void unlink(Node *node)
     {
         size_t bucketIndex = node->hash % bucketCount;
@@ -154,7 +149,9 @@ public:
 
         prev->next = node->next;
 
-        if (node->next != nullptr) {
+        // if next node is in another bucket - change pointer in buckets array.
+        if (node->next != nullptr)
+        {
             size_t nextBucketIndex = node->next->hash % bucketCount;
 
             if (nextBucketIndex != bucketIndex)
@@ -172,34 +169,6 @@ public:
         assert(beginNode.next != nullptr);
 
         unlink(beginNode.next);
-
-        //assert(beginNode.next != nullptr);
-
-        /*assert(_begin.node != nullptr);
-
-        iterator oldBegin = _begin;
-        ++_begin;
-
-        size_t bucketIndex = oldBegin.node->hash % bucketCount;
-        Node *nodePtr = buckets[bucketIndex];
-
-        if(nodePtr == oldBegin.node)
-        {
-            buckets[bucketIndex] = oldBegin.node->next;
-        }
-        else
-        {
-            while(nodePtr->next != oldBegin.node)
-            {
-                nodePtr = nodePtr->next;
-            }
-
-            nodePtr->next = oldBegin.node->next;
-            nodePtr->nextIter = oldBegin.node->nextIter;
-        }*/
-
-        /*assert(_size > 0);
-        --_size;*/
     }
 
 
@@ -209,7 +178,8 @@ public:
 
         Node *nodePtr = buckets[bucketIndex];
 
-        if (nodePtr == nullptr) {
+        if (nodePtr == nullptr)
+        {
             return end();
         }
 
@@ -233,20 +203,24 @@ public:
         return end();
     }
 
+
     iterator begin()
     {
         return iterator(this, beginNode.next);
     }
+
 
     iterator end() const
     {
         return iterator();
     }
 
+
     float max_load_factor() const
     {
         return 1.0;
     }
+
 
     float load_factor() const
     {
@@ -254,16 +228,17 @@ public:
     }
 
 
-
     size_t size() const
     {
         return _size;
     }
 
+
     size_t max_size() const
     {
         return _maxSize;
     }
+
 
     void reallocate(size_t argBucketCount)
     {
@@ -273,16 +248,6 @@ public:
 
         buckets = (decltype(buckets))realloc(buckets, bucketCount * sizeof(Node*));
 
-        /*if (buckets != nullptr)
-        {
-            buckets = (decltype(buckets))realloc(buckets, bucketCount * sizeof(Node*));
-        }
-        else
-        {
-            std::cout << bucketCount * sizeof(Node*) << std::endl;
-            buckets = (Node**)malloc(bucketCount * sizeof(Node*));
-        }
-        buckets[0] = (Node*)33;*/
         memset(buckets, 0, bucketCount * sizeof(Node*));
 
         _maxSize = bucketCount * max_load_factor();
@@ -294,20 +259,18 @@ public:
     Node **buckets = nullptr;
     size_t bucketCount;
 
-    HashType hashObject;
+    HashAlgoType hashObject;
     EqualType equalObject;
 
     size_t _size;
     size_t _maxSize;
 
-
-    iterator _begin;
-
-    HashType hasher;
+    HashAlgoType hasher;
     EqualType equalComparer;
 
-    Node beginNode;
+    EmptyNode beginNode;
 };
+
 
 #define HASH_TABLE_PRIMES \
     (17ul)(29ul)(37ul)(53ul)(67ul)(79ul) \

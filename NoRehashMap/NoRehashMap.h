@@ -1,25 +1,27 @@
 #ifndef INCREMENTA_HASH_MAP_H
 #define INCREMENTA_HASH_MAP_H
 
-//#include <utility>
 #include <boost/functional/hash.hpp>
 
 #include <HashTable.h>
 
 
-template<typename K, typename T, typename HashType=boost::hash<K>, int movePerOperation=1>
+template<typename K, typename T,
+         typename HashAlgoType=boost::hash<K>,
+         typename EqualType=std::equal_to<K>,
+         int movePerInsert=1>
 class NoRehashMap {
 public:
-    typedef typename HashTable<K, T>::iterator iterator;
-    typedef typename HashTable<K, T>::value_type value_type;
+    typedef typename HashTable<K, T, HashAlgoType, EqualType>::iterator iterator;
+    typedef typename HashTable<K, T, HashAlgoType, EqualType>::value_type value_type;
 
-    NoRehashMap()
+
+    NoRehashMap():
+        insertTable0(&table0), insertTable1(&table1),
+        findTable0(&table0), findTable1(&table1)
     {
-        insertTable0 = &table0;
-        insertTable1 = &table1;
-        findTable0 = &table0;
-        findTable1 = &table1;
     }
+
 
     std::pair<iterator, bool> insert(value_type &value)
     {
@@ -33,7 +35,6 @@ public:
 
         if (insertTable0->size() >= insertTable0->max_size())
         {
-            std::cout << insertTable1->size() << " " << insertTable0->size() << std::endl;
             assert(insertTable1->size() == 0);
 
             insertTable1->reallocate(insertTable0->size() * 2);
@@ -41,7 +42,7 @@ public:
             std::swap(insertTable0, insertTable1);
         }
 
-        for (int i = 0; i < movePerOperation; ++i)
+        for (int i = 0; i < movePerInsert; ++i)
         {
             iterator iter = insertTable1->begin();
             if (iter == insertTable1->end())
@@ -52,7 +53,8 @@ public:
             insertTable0->link(iter.node);
         }
 
-        if (insertTable0->size() >= insertTable1->size() && findTable0 == insertTable1) {
+        if (insertTable0->size() >= insertTable1->size() && findTable0 == insertTable1)
+        {
             std::swap(findTable0, findTable1);
         }
 
@@ -76,9 +78,9 @@ public:
         return findHash(key, hash);
     }
 
-    HashTable<K, T> table0, table1;
-    HashTable<K, T> *insertTable0, *insertTable1;
-    HashTable<K, T> *findTable0, *findTable1;
+    HashTable<K, T, HashAlgoType, EqualType> table0, table1;
+    HashTable<K, T, HashAlgoType, EqualType> *insertTable0, *insertTable1;
+    HashTable<K, T, HashAlgoType, EqualType> *findTable0, *findTable1;
 };
 
 
