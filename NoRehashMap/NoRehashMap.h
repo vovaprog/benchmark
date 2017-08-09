@@ -7,10 +7,11 @@
 
 
 template<typename K, typename T,
-         typename HashAlgoType=boost::hash<K>,
-         typename EqualType=std::equal_to<K>,
-         int movePerInsert=1>
-class NoRehashMap {
+         typename HashAlgoType = boost::hash<K>,
+         typename EqualType = std::equal_to<K>,
+         int movePerInsert = 1>
+class NoRehashMap
+{
 public:
     typedef typename HashTable<K, T, HashAlgoType, EqualType>::iterator iterator;
     typedef typename HashTable<K, T, HashAlgoType, EqualType>::value_type value_type;
@@ -28,12 +29,12 @@ public:
         size_t hash = table0.hasher(value.first);
 
         iterator iter = findHash(value.first, hash);
-        if (iter != table0.end())
+        if(iter != table0.end())
         {
             return std::pair<iterator, bool>(iter, false);
         }
 
-        if (insertTable0->size() >= insertTable0->max_size())
+        if(insertTable0->size() >= insertTable0->max_size())
         {
             assert(insertTable1->size() == 0);
 
@@ -42,10 +43,10 @@ public:
             std::swap(insertTable0, insertTable1);
         }
 
-        for (int i = 0; i < movePerInsert; ++i)
+        for(int i = 0; i < movePerInsert; ++i)
         {
             iterator iter = insertTable1->begin();
-            if (iter == insertTable1->end())
+            if(iter == insertTable1->end())
             {
                 break;
             }
@@ -53,7 +54,7 @@ public:
             insertTable0->link(iter.node);
         }
 
-        if (insertTable0->size() >= insertTable1->size() && findTable0 == insertTable1)
+        if(insertTable0->size() >= insertTable1->size() && findTable0 == insertTable1)
         {
             std::swap(findTable0, findTable1);
         }

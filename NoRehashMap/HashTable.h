@@ -5,9 +5,10 @@
 
 
 template<typename K, typename T,
-         typename HashAlgoType=boost::hash<K>,
-         typename EqualType=std::equal_to<K>>
-class HashTable {
+         typename HashAlgoType = boost::hash<K>,
+         typename EqualType = std::equal_to<K>>
+class HashTable
+{
 public:
     typedef std::pair<K, T> value_type;
 
@@ -27,19 +28,22 @@ public:
         return *bound;
     }
 
-    struct Node {
+    struct Node
+    {
         Node *next = nullptr;
         value_type value;
         size_t hash;
         bool lastInBucket = false;
     };
 
-    struct EmptyNode {
+    struct EmptyNode
+    {
         Node *next = nullptr;
     };
 
 
-    class iterator {
+    class iterator
+    {
     public:
         iterator(): table(nullptr), node(nullptr)
         {
@@ -50,21 +54,24 @@ public:
         {
         }
 
-        value_type* operator->() const {
+        value_type* operator->() const
+        {
             return &node->value;
         }
 
-        bool operator==(const iterator& iter) const {
+        bool operator==(const iterator& iter) const
+        {
             return node == iter.node;
         }
 
-        bool operator!=(const iterator& iter) const {
+        bool operator!=(const iterator& iter) const
+        {
             return node != iter.node;
         }
 
         iterator& operator++()
         {
-            if (node != nullptr)
+            if(node != nullptr)
             {
                 node = node->nextIter;
             }
@@ -85,9 +92,9 @@ public:
         size_t bucketIndex = hash % bucketCount;
         Node *prev = buckets[bucketIndex];
 
-        if (prev == nullptr)
+        if(prev == nullptr)
         {
-            if (beginNode.next != nullptr)
+            if(beginNode.next != nullptr)
             {
                 buckets[beginNode.next->hash % bucketCount] = newNode;
             }
@@ -116,7 +123,7 @@ public:
 
         if(buckets[bucketIndex] == nullptr)
         {
-            if (beginNode.next != nullptr)
+            if(beginNode.next != nullptr)
             {
                 buckets[beginNode.next->hash % bucketCount] = node;
             }
@@ -142,7 +149,7 @@ public:
 
         Node *prev = buckets[bucketIndex];
 
-        while (prev->next != node)
+        while(prev->next != node)
         {
             prev = prev->next;
         }
@@ -150,11 +157,11 @@ public:
         prev->next = node->next;
 
         // if next node is in another bucket - change pointer in buckets array.
-        if (node->next != nullptr)
+        if(node->next != nullptr)
         {
             size_t nextBucketIndex = node->next->hash % bucketCount;
 
-            if (nextBucketIndex != bucketIndex)
+            if(nextBucketIndex != bucketIndex)
             {
                 buckets[nextBucketIndex] = prev;
             }
@@ -178,7 +185,7 @@ public:
 
         Node *nodePtr = buckets[bucketIndex];
 
-        if (nodePtr == nullptr)
+        if(nodePtr == nullptr)
         {
             return end();
         }
@@ -187,12 +194,12 @@ public:
 
         while(nodePtr != nullptr)
         {
-            if (nodePtr->hash == hash && equalComparer(nodePtr->value.first, key))
+            if(nodePtr->hash == hash && equalComparer(nodePtr->value.first, key))
             {
                 return iterator(this, nodePtr);
             }
 
-            if (nodePtr->lastInBucket == true)
+            if(nodePtr->lastInBucket == true)
             {
                 break;
             }
@@ -283,7 +290,8 @@ public:
 
 
 template<typename K, typename T, typename HashType, typename EqualType>
-const size_t HashTable<K, T, HashType, EqualType>::primes[] = {
+const size_t HashTable<K, T, HashType, EqualType>::primes[] =
+{
     BOOST_PP_SEQ_ENUM(HASH_TABLE_PRIMES)
 };
 
