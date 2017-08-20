@@ -12,6 +12,7 @@
 #include <iostream>
 #include <tbb/concurrent_hash_map.h>
 
+#include <NoRehashMap/NoRehashMap.h>
 
 template<typename T>
 struct HashNone
@@ -34,6 +35,7 @@ bool benchMapFind_fillMap(BenchmarkParameters &params, MapType &m)
         Data d;
         d.key = keys[i];
         m[d.key] = d;
+        //m.insert(typename MapType::value_type(d.key, d));
     }
 
     return true;
@@ -250,6 +252,14 @@ bool benchTbbConcurrentHashMap(BenchmarkParameters &params)
 }
 
 
+bool benchNoRehashMap(BenchmarkParameters &params)
+{
+    bool result = benchMapFind<NoRehashMap<uint64_t,Data>>(params);
+    params.testName = "no rehash";
+    return result;
+}
+
+
 template<typename T>
 bool benchSortedArray(BenchmarkParameters &params)
 {
@@ -339,6 +349,7 @@ bool benchMapInsert(BenchmarkParameters &params)
         Data d;
         d.key = keys[i];
         m[d.key] = d;
+        //m.insert(typename MapType::value_type(d.key, d));
     }
 
     //=================================================================================
@@ -384,6 +395,14 @@ bool benchBoostUnorderedMapInsert(BenchmarkParameters &params)
 {
     bool result = benchMapInsert<boost::unordered_map<uint64_t, Data>>(params);
     params.testName = "boost unordered_map insert";
+    return result;
+}
+
+
+bool benchNoRehashMapInsert(BenchmarkParameters &params)
+{
+    bool result = benchMapInsert<NoRehashMap<uint64_t, Data>>(params);
+    params.testName = "no rehash insert";
     return result;
 }
 
@@ -531,6 +550,12 @@ bool benchMapsFind(int64_t itemCountStart, int64_t itemCountEnd, int64_t itemCou
         return false;
     }
 
+    std::cout << "no rehash" << std::endl;
+    if(!runBenchmarkSet<benchNoRehashMap>(benchSet))
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -575,6 +600,12 @@ bool benchMapsInsert(int64_t itemCountStart, int64_t itemCountEnd, int64_t itemC
         return false;
     }
 
+    std::cout << "no rehash" << std::endl;
+    if(!runBenchmarkSet<benchNoRehashMapInsert>(benchSet))
+    {
+        return false;
+    }
+
     std::cout << "boost flat_map" << std::endl;
     if(!runBenchmarkSet<benchBoostFlatMapFill>(benchSet))
     {
@@ -612,10 +643,66 @@ bool mapInsertBenchmark()
 {
     std::cout << "===== map insert benchmark =====" << std::endl;
 
-    if(!benchMapsInsert(5, 10000, 10))
+    if(!benchMapsInsert(5, 100000, 500))
     {
         return false;
     }
 
     return true;
 }
+
+
+template<class MapType>
+bool benchInsertItem(BenchmarkSet &benchSet, int itemCount, const char *testName)
+{
+    MapType m;
+
+    benchSet.params.clear();
+    benchSet.params.reserve(itemCount);
+
+    for(int i=1;i<=itemCount;++i)
+    {
+        Data d;
+        d.key = i;
+
+        uint64_t ticks = getTicks();
+
+        m.insert(typename MapType::value_type(d.key, d));
+
+        ticks = getTicks() - ticks;
+
+        BenchmarkParameters params;
+        params.itemCount = i;
+        params.ticks = ticks;
+        params.testName = testName;
+
+        benchSet.params.push_back(params);
+    }
+
+    resultToFile(benchSet);
+
+    return true;
+}
+
+
+bool mapInsertItemBenchmark()
+{
+    std::cout << "===== map insert item benchmark =====" << std::endl;
+
+    const int itemCount = 100000;
+
+    BenchmarkSet benchSet;
+    benchSet.prefixes.push_back("map insert item");
+
+    std::cout << "boost unordered_map" << std::endl;
+    benchInsertItem<boost::unordered_map<uint64_t, Data>>(benchSet, itemCount, "boost unordered_map");
+
+    std::cout << "no rehash map" << std::endl;
+    benchInsertItem<NoRehashMap<uint64_t, Data>>(benchSet, itemCount, "no rehash map");
+
+    std::cout << "std map" << std::endl;
+    benchInsertItem<std::map<uint64_t, Data>>(benchSet, itemCount, "std map");
+
+    return true;
+}
+

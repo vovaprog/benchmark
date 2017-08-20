@@ -3,5 +3,6 @@
 
 bool mapFindBenchmark();
 bool mapInsertBenchmark();
+bool mapInsertItemBenchmark();
 
 #endif

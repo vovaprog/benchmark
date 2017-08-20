@@ -4,7 +4,7 @@ project (benchmark)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-include_directories(".")
+include_directories("." "./NoRehashMap")
 
 set(SOURCE
     main.cpp
@@ -17,6 +17,7 @@ set(SOURCE
     StringUtils.h
     SwitchBenchmark.h SwitchBenchmark.cpp
     Tools.h Tools.cpp
+    NoRehashMap/NoRehashMap.h NoRehashMap/HashTable.h
     ProducerConsumer/ProducerConsumerBenchmark.h ProducerConsumer/ProducerConsumerBenchmark.cpp
     ProducerConsumer/Producer.h ProducerConsumer/Consumer.h ProducerConsumer/QueueBoostLockfree.h)
 

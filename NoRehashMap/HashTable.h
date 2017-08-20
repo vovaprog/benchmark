@@ -6,27 +6,14 @@
 
 template<typename K, typename T,
          typename HashAlgoType = boost::hash<K>,
-         typename EqualType = std::equal_to<K>>
+         typename EqualAlgoType = std::equal_to<K>>
 class HashTable
 {
 public:
+
     typedef std::pair<K, T> value_type;
 
-    HashTable(): buckets(nullptr), _size(0)
-    {
-        reallocate(11);
-    }
-
-    static size_t nextPrime(size_t num)
-    {
-        size_t const* const prime_list_begin = primes;
-        size_t const* const prime_list_end = primes + primesCount;
-        size_t const* bound =
-            std::lower_bound(prime_list_begin, prime_list_end, num);
-        if(bound == prime_list_end)
-            bound--;
-        return *bound;
-    }
+private:
 
     struct Node
     {
@@ -36,11 +23,14 @@ public:
         bool lastInBucket = false;
     };
 
+
     struct EmptyNode
     {
         Node *next = nullptr;
     };
 
+
+public:
 
     class iterator
     {
@@ -49,25 +39,30 @@ public:
         {
         }
 
-        iterator(HashTable<K, T, HashAlgoType, EqualType> *table, Node *node):
+
+        iterator(HashTable<K, T, HashAlgoType, EqualAlgoType> *table, Node *node):
             table(table), node(node)
         {
         }
+
 
         value_type* operator->() const
         {
             return &node->value;
         }
 
+
         bool operator==(const iterator& iter) const
         {
             return node == iter.node;
         }
 
+
         bool operator!=(const iterator& iter) const
         {
             return node != iter.node;
         }
+
 
         iterator& operator++()
         {
@@ -78,11 +73,22 @@ public:
             return *this;
         }
 
-        HashTable<K, T, HashAlgoType, EqualType> *table;
+    private:
+
+        HashTable<K, T, HashAlgoType, EqualAlgoType> *table;
         Node *node;
+
+        friend class HashTable;
     };
 
-    std::pair<iterator, bool> insertHashNoCheck(value_type &value, size_t hash)
+
+    HashTable(): buckets(nullptr), _size(0)
+    {
+        reallocate(11);
+    }
+
+
+    std::pair<iterator, bool> insertHashNoCheck(const value_type &value, size_t hash)
     {
         Node * newNode = new Node();
 
@@ -117,8 +123,10 @@ public:
     }
 
 
-    void link(Node *node)
+    void link(iterator &iter)
     {
+        Node *node = iter.node;
+
         size_t bucketIndex = node->hash % bucketCount;
 
         if(buckets[bucketIndex] == nullptr)
@@ -194,7 +202,7 @@ public:
 
         while(nodePtr != nullptr)
         {
-            if(nodePtr->hash == hash && equalComparer(nodePtr->value.first, key))
+            if(nodePtr->hash == hash && equalAlgo(nodePtr->value.first, key))
             {
                 return iterator(this, nodePtr);
             }
@@ -253,12 +261,34 @@ public:
 
         bucketCount = nextPrime(argBucketCount);
 
-        buckets = (decltype(buckets))realloc(buckets, bucketCount * sizeof(Node*));
+//        buckets = (decltype(buckets))realloc(buckets, bucketCount * sizeof(Node*));
+        if (buckets != nullptr)
+        {
+            free(buckets);
+        }
+        buckets = (decltype(buckets))malloc(bucketCount * sizeof(void*));
 
         memset(buckets, 0, bucketCount * sizeof(Node*));
 
         _maxSize = bucketCount * max_load_factor();
     }
+
+    HashAlgoType hashAlgo;
+
+
+private:
+
+    static size_t nextPrime(size_t num)
+    {
+        size_t const* const prime_list_begin = primes;
+        size_t const* const prime_list_end = primes + primesCount;
+        size_t const* bound =
+            std::lower_bound(prime_list_begin, prime_list_end, num);
+        if(bound == prime_list_end)
+            bound--;
+        return *bound;
+    }
+
 
     static const size_t primes[];
     static const size_t primesCount;
@@ -267,13 +297,12 @@ public:
     size_t bucketCount;
 
     HashAlgoType hashObject;
-    EqualType equalObject;
+    EqualAlgoType equalObject;
 
     size_t _size;
     size_t _maxSize;
 
-    HashAlgoType hasher;
-    EqualType equalComparer;
+    EqualAlgoType equalAlgo;
 
     EmptyNode beginNode;
 };

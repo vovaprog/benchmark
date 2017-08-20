@@ -10,15 +10,18 @@ int main()
     {
         std::cout << i << std::endl;
 
-        MapType::value_type val(i, i);
-        m.insert(val);
+        //m.insert(MapType::value_type(i, i));
+        m[i] = i;
     }
 
     for(int i = 1; i <= 10000; ++i)
     {
-        MapType::iterator iter = m.find(i);
-        assert(iter->second == i);
-        std::cout << iter->second << std::endl;
+        //MapType::iterator iter = m.find(i);
+        //assert(iter->second == i);
+        //std::cout << iter->second << std::endl;
+
+        assert(m[i] == i);
+        std::cout << m[i] << std::endl;
     }
 
     return 0;

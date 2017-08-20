@@ -17,6 +17,9 @@ int main(int argc, char *argv[])
 {
     srand(time(nullptr));
 
+    mapInsertItemBenchmark();
+    return 0;
+
     if(argc > 1)
     {
         if(strcasecmp(argv[1], "BoostVersion") == 0)
