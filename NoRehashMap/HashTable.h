@@ -260,7 +260,7 @@ public:
         bucketCount = nextPrime(argBucketCount);
 
 //        buckets = (decltype(buckets))realloc(buckets, bucketCount * sizeof(Node*));
-        if (buckets != nullptr)
+        if(buckets != nullptr)
         {
             free(buckets);
         }

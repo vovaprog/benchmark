@@ -17,7 +17,8 @@ public:
     typedef typename HashTableType::value_type value_type;
 
 
-    class iterator {
+    class iterator
+    {
     public:
         iterator(): nextTable(nullptr)
         {
@@ -100,7 +101,7 @@ public:
         size_t hash = table0.hashAlgo(key);
 
         iterator iter = findHash(key, hash);
-        if (iter != end())
+        if(iter != end())
         {
             return iter->second;
         }
