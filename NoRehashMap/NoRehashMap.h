@@ -112,13 +112,13 @@ public:
     }
 
 
-    size_t size()
+    size_t size() const
     {
         return table0.size() + table1.size();
     }
 
 
-    iterator end()
+    iterator end() const
     {
         return iterator(nullptr, table0.end());
     }
@@ -126,7 +126,8 @@ public:
 
     void clear()
     {
-        // Not implemented!!!
+        table0.clear();
+        table1.clear();
     }
 
 private:

@@ -30,6 +30,8 @@ private:
     };
 
 
+    static const size_t InitialBuckets = 32;
+
 public:
 
     class iterator
@@ -82,13 +84,47 @@ public:
 
     HashTable(): buckets(nullptr), _size(0)
     {
-        reallocate(11);
+        reallocate(InitialBuckets);
+    }
+
+
+    ~HashTable()
+    {
+        deleteAllNodes();
+
+        if(buckets != nullptr)
+        {
+            free(buckets);
+        }
+    }
+
+
+    void clear()
+    {
+        deleteAllNodes();
+        reallocate(InitialBuckets);
+    }
+
+
+    void deleteAllNodes()
+    {
+        Node *cur = beginNode.next;
+
+        while(cur != nullptr)
+        {
+            Node *next = cur->next;
+            delete cur;
+            cur = next;
+        }
+
+        _size = 0;
+        beginNode.next = nullptr;
     }
 
 
     iterator insertHashNoCheck(const value_type &value, size_t hash)
     {
-        Node * newNode = new Node();
+        Node *newNode = new Node();
 
         newNode->value = value;
         newNode->hash = hash;
@@ -217,7 +253,7 @@ public:
     }
 
 
-    iterator begin()
+    iterator begin() const
     {
         return iterator(beginNode.next);
     }
