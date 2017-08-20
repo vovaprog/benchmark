@@ -14,9 +14,58 @@ class NoRehashMap
 {
 public:
     typedef HashTable<K, T, HashAlgoType, EqualType> HashTableType;
-    typedef typename HashTableType::iterator iterator;
     typedef typename HashTableType::value_type value_type;
 
+
+    class iterator {
+    public:
+        iterator(): nextTable(nullptr)
+        {
+        }
+
+        iterator(HashTableType *nextTable, const typename HashTableType::iterator &iter):
+            nextTable(nextTable), tableIter(iter)
+        {
+        }
+
+
+        iterator& operator++()
+        {
+            ++tableIter;
+            if(tableIter.node == nullptr)
+            {
+                if(nextTable != nullptr)
+                {
+                    tableIter = nextTable->begin();
+                    nextTable = nullptr;
+                }
+            }
+            return *this;
+        }
+
+
+        value_type* operator->() const
+        {
+            return tableIter.operator->();
+        }
+
+
+        bool operator==(const iterator& iter) const
+        {
+            return this->tableIter == iter.tableIter;
+        }
+
+
+        bool operator!=(const iterator& iter) const
+        {
+            return this->tableIter != iter.tableIter;
+        }
+
+    private:
+
+        HashTableType *nextTable;
+        typename HashTableType::iterator tableIter;
+    };
 
     NoRehashMap():
         insertTable0(&table0), insertTable1(&table1),
@@ -30,7 +79,7 @@ public:
         size_t hash = table0.hashAlgo(value.first);
 
         iterator iter = findHash(value.first, hash);
-        if(iter != table0.end())
+        if(iter != end())
         {
             return std::pair<iterator, bool>(iter, false);
         }
@@ -70,7 +119,7 @@ public:
 
     iterator end()
     {
-        return table0.end();
+        return iterator(nullptr, table0.end());
     }
 
 
@@ -94,7 +143,7 @@ private:
 
         for(int i = 0; i < movePerInsert; ++i)
         {
-            iterator iter = insertTable1->begin();
+            typename HashTableType::iterator iter = insertTable1->begin();
             if(iter == insertTable1->end())
             {
                 break;
@@ -108,18 +157,21 @@ private:
             std::swap(findTable0, findTable1);
         }
 
-        return insertTable0->insertHashNoCheck(value, hash);
+        typename HashTableType::iterator tabIter = insertTable0->insertHashNoCheck(value, hash);
+        HashTableType *nextTable = insertTable0 == findTable0 ? findTable1 : nullptr;
+        return std::make_pair(iterator(nextTable, tabIter), true);
     }
 
 
     iterator findHash(const K &key, size_t hash)
     {
-        iterator iter = findTable0->findHash(key, hash);
+        typename HashTableType::iterator iter = findTable0->findHash(key, hash);
         if(iter != findTable0->end())
         {
-            return iter;
+            return iterator(findTable1, iter);
         }
-        return findTable1->findHash(key, hash);
+        iter = findTable1->findHash(key, hash);
+        return iterator(nullptr, iter);
     }
 
 

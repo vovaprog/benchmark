@@ -35,13 +35,12 @@ public:
     class iterator
     {
     public:
-        iterator(): table(nullptr), node(nullptr)
+        iterator(): node(nullptr)
         {
         }
 
 
-        iterator(HashTable<K, T, HashAlgoType, EqualAlgoType> *table, Node *node):
-            table(table), node(node)
+        explicit iterator(Node *node): node(node)
         {
         }
 
@@ -75,7 +74,6 @@ public:
 
     private:
 
-        HashTable<K, T, HashAlgoType, EqualAlgoType> *table;
         Node *node;
 
         friend class HashTable;
@@ -88,7 +86,7 @@ public:
     }
 
 
-    std::pair<iterator, bool> insertHashNoCheck(const value_type &value, size_t hash)
+    iterator insertHashNoCheck(const value_type &value, size_t hash)
     {
         Node * newNode = new Node();
 
@@ -119,7 +117,7 @@ public:
 
         ++_size;
 
-        return std::pair<iterator, bool>(iterator(this, newNode), true);
+        return iterator(newNode);
     }
 
 
@@ -204,7 +202,7 @@ public:
         {
             if(nodePtr->hash == hash && equalAlgo(nodePtr->value.first, key))
             {
-                return iterator(this, nodePtr);
+                return iterator(nodePtr);
             }
 
             if(nodePtr->lastInBucket == true)
@@ -221,7 +219,7 @@ public:
 
     iterator begin()
     {
-        return iterator(this, beginNode.next);
+        return iterator(beginNode.next);
     }
 
 
