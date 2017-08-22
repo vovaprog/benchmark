@@ -6,7 +6,9 @@
 
 template<typename K, typename T,
          typename HashAlgoType = boost::hash<K>,
-         typename EqualAlgoType = std::equal_to<K>>
+         typename EqualAlgoType = std::equal_to<K>,
+         typename NodeAllocator = std::allocator<std::pair<const K, T>>,
+         typename BucketAllocator = std::allocator<void*>>
 class HashTable
 {
 public:
@@ -94,7 +96,7 @@ public:
 
         if(buckets != nullptr)
         {
-            free(buckets);
+            bucketAllocator.deallocate(buckets, bucketCount);
         }
     }
 
@@ -113,7 +115,7 @@ public:
         while(cur != nullptr)
         {
             Node *next = cur->next;
-            delete cur;
+            nodeAllocator.deallocate(cur, 1);
             cur = next;
         }
 
@@ -124,7 +126,8 @@ public:
 
     iterator insertHashNoCheck(const value_type &value, size_t hash)
     {
-        Node *newNode = new Node();
+        Node *newNodeMemory = nodeAllocator.allocate(1);
+        Node *newNode = new (newNodeMemory) Node;
 
         newNode->value = value;
         newNode->hash = hash;
@@ -293,14 +296,14 @@ public:
     {
         assert(_size == 0);
 
-        bucketCount = nextPrime(argBucketCount);
-
-//        buckets = (decltype(buckets))realloc(buckets, bucketCount * sizeof(Node*));
         if(buckets != nullptr)
         {
-            free(buckets);
+            bucketAllocator.deallocate(buckets, bucketCount);
         }
-        buckets = (decltype(buckets))malloc(bucketCount * sizeof(void*));
+
+        bucketCount = nextPrime(argBucketCount);
+
+        buckets = bucketAllocator.allocate(bucketCount);
 
         memset(buckets, 0, bucketCount * sizeof(Node*));
 
@@ -339,6 +342,9 @@ private:
     EqualAlgoType equalAlgo;
 
     EmptyNode beginNode;
+
+    typename NodeAllocator::template rebind<Node>::other nodeAllocator;
+    typename BucketAllocator::template rebind<Node*>::other bucketAllocator;
 };
 
 
@@ -352,13 +358,13 @@ private:
     (1610612741ul)(3221225473ul)(4294967291ul)
 
 
-template<typename K, typename T, typename HashType, typename EqualType>
-const size_t HashTable<K, T, HashType, EqualType>::primes[] =
+template<typename K, typename T, typename HashType, typename EqualType, typename NodeAllocator, typename BucketAllocator>
+const size_t HashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primes[] =
 {
     BOOST_PP_SEQ_ENUM(HASH_TABLE_PRIMES)
 };
 
-template<typename K, typename T, typename HashType, typename EqualType>
-const size_t HashTable<K, T, HashType, EqualType>::primesCount = BOOST_PP_SEQ_SIZE(HASH_TABLE_PRIMES);
+template<typename K, typename T, typename HashType, typename EqualType, typename NodeAllocator, typename BucketAllocator>
+const size_t HashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primesCount = BOOST_PP_SEQ_SIZE(HASH_TABLE_PRIMES);
 
 #endif
