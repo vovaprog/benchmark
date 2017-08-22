@@ -1,9 +1,17 @@
 #include <iostream>
+
 #include <NoRehashMap.h>
+#include <MallocAllocator.h>
+#include <BlockStorageAllocator.h>
 
 int main()
 {
-    typedef NoRehashMap<int, int> MapType;
+    typedef NoRehashMap<
+            int,
+            int,
+            boost::hash<int>, std::equal_to<int>,
+            BlockStorageAllocator<std::pair<const int, int>>,
+            MallocAllocator<void*>> MapType;
     MapType m;
 
     for(int i = 1; i <= 10000; ++i)

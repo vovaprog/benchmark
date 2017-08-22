@@ -9,11 +9,14 @@
 template<typename K, typename T,
          typename HashAlgoType = boost::hash<K>,
          typename EqualType = std::equal_to<K>,
+         typename NodeAllocator = std::allocator<std::pair<const K, T>>,
+         typename BucketAllocator = std::allocator<void*>,
          int movePerInsert = 1>
 class NoRehashMap
 {
 public:
-    typedef HashTable<K, T, HashAlgoType, EqualType> HashTableType;
+
+    typedef HashTable<K, T, HashAlgoType, EqualType, NodeAllocator, BucketAllocator> HashTableType;
     typedef typename HashTableType::value_type value_type;
 
 
@@ -177,10 +180,10 @@ private:
     }
 
 
-    HashTable<K, T, HashAlgoType, EqualType> table0, table1;
+    HashTableType table0, table1;
 
-    HashTable<K, T, HashAlgoType, EqualType> *insertTable0, *insertTable1;
-    HashTable<K, T, HashAlgoType, EqualType> *findTable0, *findTable1;
+    HashTableType *insertTable0, *insertTable1;
+    HashTableType *findTable0, *findTable1;
 };
 
 
