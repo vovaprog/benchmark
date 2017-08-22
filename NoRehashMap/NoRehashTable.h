@@ -1,5 +1,5 @@
-#ifndef HASH_TABLE_H
-#define HASH_TABLE_H
+#ifndef NO_REHASH_TABLE_H
+#define NO_REHASH_TABLE_H
 
 #include <boost/preprocessor.hpp>
 
@@ -9,7 +9,7 @@ template<typename K, typename T,
          typename EqualAlgoType = std::equal_to<K>,
          typename NodeAllocator = std::allocator<std::pair<const K, T>>,
          typename BucketAllocator = std::allocator<void*>>
-class HashTable
+class NoRehashTable
 {
 public:
 
@@ -80,17 +80,17 @@ public:
 
         Node *node;
 
-        friend class HashTable;
+        friend class NoRehashTable;
     };
 
 
-    HashTable(): buckets(nullptr), _size(0)
+    NoRehashTable(): buckets(nullptr), _size(0)
     {
         reallocate(InitialBuckets);
     }
 
 
-    ~HashTable()
+    ~NoRehashTable()
     {
         deleteAllNodes();
 
@@ -359,12 +359,12 @@ private:
 
 
 template<typename K, typename T, typename HashType, typename EqualType, typename NodeAllocator, typename BucketAllocator>
-const size_t HashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primes[] =
+const size_t NoRehashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primes[] =
 {
     BOOST_PP_SEQ_ENUM(HASH_TABLE_PRIMES)
 };
 
 template<typename K, typename T, typename HashType, typename EqualType, typename NodeAllocator, typename BucketAllocator>
-const size_t HashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primesCount = BOOST_PP_SEQ_SIZE(HASH_TABLE_PRIMES);
+const size_t NoRehashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primesCount = BOOST_PP_SEQ_SIZE(HASH_TABLE_PRIMES);
 
 #endif

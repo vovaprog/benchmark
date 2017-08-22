@@ -17,7 +17,7 @@ set(SOURCE
     StringUtils.h
     SwitchBenchmark.h SwitchBenchmark.cpp
     Tools.h Tools.cpp
-    NoRehashMap/NoRehashMap.h NoRehashMap/HashTable.h
+    NoRehashMap/NoRehashMap.h NoRehashMap/NoRehashTable.h
     ProducerConsumer/ProducerConsumerBenchmark.h ProducerConsumer/ProducerConsumerBenchmark.cpp
     ProducerConsumer/Producer.h ProducerConsumer/Consumer.h ProducerConsumer/QueueBoostLockfree.h)
 

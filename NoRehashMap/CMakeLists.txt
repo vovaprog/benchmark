@@ -8,7 +8,7 @@ include_directories(".")
 
 set(SOURCE
     NoRehashMap.h
-    HashTable.h
+    NoRehashTable.h
     BlockStorage.h
     BlockStorageAllocator.h
     MallocAllocator.h

@@ -3,7 +3,7 @@
 
 #include <boost/functional/hash.hpp>
 
-#include <HashTable.h>
+#include <NoRehashTable.h>
 
 
 template<typename K, typename T,
@@ -16,7 +16,7 @@ class NoRehashMap
 {
 public:
 
-    typedef HashTable<K, T, HashAlgoType, EqualType, NodeAllocator, BucketAllocator> HashTableType;
+    typedef NoRehashTable<K, T, HashAlgoType, EqualType, NodeAllocator, BucketAllocator> HashTableType;
     typedef typename HashTableType::value_type value_type;
 
 
