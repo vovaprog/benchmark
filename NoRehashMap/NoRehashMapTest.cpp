@@ -14,15 +14,17 @@ int main()
             MallocAllocator<void*>> MapType;
     MapType m;
 
-    for(int i = 1; i <= 10000; ++i)
+    const int itemCount = 100000;
+
+    for(int i = 1; i <= itemCount; ++i)
     {
         std::cout << i << std::endl;
 
-        //m.insert(MapType::value_type(i, i));
-        m[i] = i;
+        m.insert(MapType::value_type(i, i));
+        //m[i] = i;
     }
 
-    for(int i = 1; i <= 10000; ++i)
+    for(int i = 1; i <= itemCount; ++i)
     {
         //MapType::iterator iter = m.find(i);
         //assert(iter->second == i);

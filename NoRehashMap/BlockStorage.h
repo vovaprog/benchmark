@@ -1,22 +1,17 @@
 #ifndef BLOCK_STORAGE_H
 #define BLOCK_STORAGE_H
 
-template <typename T, int blockSize = 0x400>
+template <typename T, int BlockSize = 0x400>
 class BlockStorage
 {
 public:
-    struct ServiceData
-    {
-        T *next = nullptr;
-        T *prev = nullptr;
-    };
 
     BlockStorage() = default;
 
-    BlockStorage(const BlockStorage &fa) = delete;
-    BlockStorage(BlockStorage &&fa) = delete;
-    BlockStorage& operator=(const BlockStorage &fa) = delete;
-    BlockStorage& operator=(BlockStorage && fa) = delete;
+    BlockStorage(const BlockStorage &) = delete;
+    BlockStorage(BlockStorage &&) = delete;
+    BlockStorage& operator=(const BlockStorage &) = delete;
+    BlockStorage& operator=(BlockStorage &&) = delete;
 
     ~BlockStorage()
     {
@@ -35,9 +30,10 @@ public:
         }
         blocks = nullptr;
         freeListHead = nullptr;
-        usedListHead = nullptr;
     }
 
+#define NODE_TO_ITEM(node) (reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(node) + offsetof(Node, buf)))
+#define ITEM_TO_NODE(p) (reinterpret_cast<Node*>(reinterpret_cast<uintptr_t>(p) - offsetof(Node, buf)))
 
     T* allocate()
     {
@@ -46,57 +42,25 @@ public:
             allocateBlock();
         }
 
-        T *result = freeListHead;
+        Node *result = freeListHead;
         freeListHead = result->blockStorageData.next;
 
-        addToUsedList(result);
-
-        return result;
+        return NODE_TO_ITEM(result);
     }
 
 
     inline void free(T *p)
     {
-        removeFromUsedList(p);
+        Node *node = ITEM_TO_NODE(p);
 
-        p->blockStorageData.next = freeListHead;
-        freeListHead = p;
+        node->blockStorageData.next = freeListHead;
+        freeListHead = node;
     }
 
+#undef NODE_TO_ITEM
+#undef ITEM_TO_NODE
 
-    inline T* head() const
-    {
-        return usedListHead;
-    }
-
-    inline T* next(const T* item) const
-    {
-        return item->blockStorageData.next;
-    }
-
-
-    struct StorageInfo
-    {
-        int allocatedCount = 0;
-    };
-
-    int getStorageInfo(StorageInfo &si) const
-    {
-        T *cur = usedListHead;
-        int counter = 0;
-        while(cur != nullptr)
-        {
-            ++counter;
-            cur = cur->blockStorageData.next;
-        }
-
-        si.allocatedCount = counter;
-
-        return 0;
-    }
-
-
-protected:
+private:
 
     inline void allocateBlock()
     {
@@ -104,60 +68,41 @@ protected:
         newBlock->next = blocks;
         blocks = newBlock;
 
-        newBlock->items[blockSize - 1].blockStorageData.next = nullptr;
-        if(blockSize > 1)
+        newBlock->nodes[BlockSize - 1].blockStorageData.next = nullptr;
+        if(BlockSize > 1)
         {
-            for(int i = 0; i < blockSize - 1; ++i)
+            for(int i = 0; i < BlockSize - 1; ++i)
             {
-                newBlock->items[i].blockStorageData.next = &(newBlock->items[i + 1]);
+                newBlock->nodes[i].blockStorageData.next = &(newBlock->nodes[i + 1]);
             }
         }
 
-        freeListHead = &(newBlock->items[0]);
-    }
-
-    inline void addToUsedList(T* newItem)
-    {
-        if(usedListHead != nullptr)
-        {
-            usedListHead->blockStorageData.prev = newItem;
-        }
-        newItem->blockStorageData.prev = nullptr;
-        newItem->blockStorageData.next = usedListHead;
-        usedListHead = newItem;
-    }
-
-
-    inline void removeFromUsedList(T *item)
-    {
-        if(item == usedListHead)
-        {
-            usedListHead = item->blockStorageData.next;
-        }
-        if(item->blockStorageData.prev != nullptr)
-        {
-            item->blockStorageData.prev->blockStorageData.next =
-                item->blockStorageData.next;
-        }
-        if(item->blockStorageData.next != nullptr)
-        {
-            item->blockStorageData.next->blockStorageData.prev =
-                item->blockStorageData.prev;
-        }
+        freeListHead = &(newBlock->nodes[0]);
     }
 
 
 private:
 
+    struct Node;
+    struct ServiceData
+    {
+        Node *next = nullptr;
+    };
+
+    struct Node
+    {
+        char buf[sizeof(T)];
+        ServiceData blockStorageData;
+    };
+
     struct Block
     {
         Block *next = nullptr;
-        T items[blockSize];
+        Node nodes[BlockSize];
     };
 
     Block *blocks = nullptr;
-    T *freeListHead = nullptr;
-    T *usedListHead = nullptr;
+    Node *freeListHead = nullptr;
 };
 
 #endif // BLOCK_STORAGE_H

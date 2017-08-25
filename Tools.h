@@ -15,6 +15,13 @@ inline uint64_t getTicks()
 }
 
 
+inline uint64_t getTicksNano()
+{
+    auto duration = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+}
+
+
 inline uint64_t randomUInt64()
 {
     static std::random_device rd;

@@ -13,6 +13,8 @@
 #include <tbb/concurrent_hash_map.h>
 
 #include <NoRehashMap/NoRehashMap.h>
+#include <NoRehashMap/BlockStorageAllocator.h>
+#include <NoRehashMap/MallocAllocator.h>
 
 template<typename T>
 struct HashNone
@@ -254,7 +256,14 @@ bool benchTbbConcurrentHashMap(BenchmarkParameters &params)
 
 bool benchNoRehashMap(BenchmarkParameters &params)
 {
-    bool result = benchMapFind<NoRehashMap<uint64_t,Data>>(params);
+    typedef NoRehashMap<
+            uint64_t,
+            Data,
+            boost::hash<int>, std::equal_to<int>,
+            BlockStorageAllocator<std::pair<const uint64_t, Data>>,
+            MallocAllocator<void*>> NoRehashMapType;
+
+    bool result = benchMapFind<NoRehashMapType>(params);
     params.testName = "no rehash";
     return result;
 }
@@ -665,11 +674,11 @@ bool benchInsertItem(BenchmarkSet &benchSet, int itemCount, const char *testName
         Data d;
         d.key = i;
 
-        uint64_t ticks = getTicks();
+        uint64_t ticks = getTicksNano();
 
         m.insert(typename MapType::value_type(d.key, d));
 
-        ticks = getTicks() - ticks;
+        ticks = getTicksNano() - ticks;
 
         BenchmarkParameters params;
         params.itemCount = i;
@@ -697,8 +706,15 @@ bool mapInsertItemBenchmark()
     std::cout << "boost unordered_map" << std::endl;
     benchInsertItem<boost::unordered_map<uint64_t, Data>>(benchSet, itemCount, "boost unordered_map");
 
+    typedef NoRehashMap<
+            uint64_t,
+            Data,
+            boost::hash<int>, std::equal_to<int>,
+            BlockStorageAllocator<std::pair<const uint64_t, Data>>,
+            MallocAllocator<void*>> NoRehashMapType;
+
     std::cout << "no rehash map" << std::endl;
-    benchInsertItem<NoRehashMap<uint64_t, Data>>(benchSet, itemCount, "no rehash map");
+    benchInsertItem<NoRehashMapType>(benchSet, itemCount, "no rehash map");
 
     std::cout << "std map" << std::endl;
     benchInsertItem<std::map<uint64_t, Data>>(benchSet, itemCount, "std map");

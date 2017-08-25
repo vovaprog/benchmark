@@ -4,37 +4,31 @@
 #include <boost/preprocessor.hpp>
 
 
-template<typename K, typename T,
-         typename HashAlgoType = boost::hash<K>,
-         typename EqualAlgoType = std::equal_to<K>,
-         typename NodeAllocator = std::allocator<std::pair<const K, T>>,
-         typename BucketAllocator = std::allocator<void*>>
-class NoRehashTable
+template<typename K, typename T>
+struct NoRehashTableNode
 {
-public:
-
     typedef std::pair<K, T> value_type;
 
+    NoRehashTableNode<K, T> *next = nullptr;
+    value_type value;
+    size_t hash;
+    bool lastInBucket = false;
+};
+
+
+template<typename K, typename T,
+         typename HashAlgoType,
+         typename EqualAlgoType,
+         typename NodeAllocator,
+         typename BucketAllocator>
+class NoRehashTable
+{
 private:
-
-    struct Node
-    {
-        Node *next = nullptr;
-        value_type value;
-        size_t hash;
-        bool lastInBucket = false;
-    };
-
-
-    struct EmptyNode
-    {
-        Node *next = nullptr;
-    };
-
-
-    static const size_t InitialBuckets = 32;
+    typedef NoRehashTableNode<K, T> Node;
 
 public:
+    typedef typename Node::value_type value_type;
+
 
     class iterator
     {
@@ -84,10 +78,20 @@ public:
     };
 
 
-    NoRehashTable(): buckets(nullptr), _size(0)
+    NoRehashTable(NodeAllocator *argNodeAllocator, BucketAllocator *argBucketAllocator):
+        buckets(nullptr),
+        _size(0),
+        nodeAllocator(argNodeAllocator),
+        bucketAllocator(argBucketAllocator)
     {
         reallocate(InitialBuckets);
     }
+
+
+    NoRehashTable(const NoRehashTable &) = delete;
+    NoRehashTable(NoRehashTable &&) = delete;
+    NoRehashTable& operator=(const NoRehashTable &) = delete;
+    NoRehashTable& operator=(NoRehashTable &&) = delete;
 
 
     ~NoRehashTable()
@@ -96,7 +100,7 @@ public:
 
         if(buckets != nullptr)
         {
-            bucketAllocator.deallocate(buckets, bucketCount);
+            bucketAllocator->deallocate(buckets, bucketCount);
         }
     }
 
@@ -115,7 +119,7 @@ public:
         while(cur != nullptr)
         {
             Node *next = cur->next;
-            nodeAllocator.deallocate(cur, 1);
+            nodeAllocator->deallocate(cur, 1);
             cur = next;
         }
 
@@ -126,7 +130,7 @@ public:
 
     iterator insertHashNoCheck(const value_type &value, size_t hash)
     {
-        Node *newNodeMemory = nodeAllocator.allocate(1);
+        Node *newNodeMemory = nodeAllocator->allocate(1);
         Node *newNode = new (newNodeMemory) Node;
 
         newNode->value = value;
@@ -298,19 +302,17 @@ public:
 
         if(buckets != nullptr)
         {
-            bucketAllocator.deallocate(buckets, bucketCount);
+            bucketAllocator->deallocate(buckets, bucketCount);
         }
 
         bucketCount = nextPrime(argBucketCount);
 
-        buckets = bucketAllocator.allocate(bucketCount);
+        buckets = bucketAllocator->allocate(bucketCount);
 
         memset(buckets, 0, bucketCount * sizeof(Node*));
 
         _maxSize = bucketCount * max_load_factor();
     }
-
-    HashAlgoType hashAlgo;
 
 
 private:
@@ -327,24 +329,32 @@ private:
     }
 
 
+public:
+    HashAlgoType hashAlgo;
+
+private:
+    static const size_t InitialBuckets = 32;
+
     static const size_t primes[];
     static const size_t primesCount;
 
     Node **buckets = nullptr;
     size_t bucketCount;
 
-    HashAlgoType hashObject;
-    EqualAlgoType equalObject;
-
     size_t _size;
     size_t _maxSize;
 
     EqualAlgoType equalAlgo;
 
+    struct EmptyNode
+    {
+        Node *next = nullptr;
+    };
+
     EmptyNode beginNode;
 
-    typename NodeAllocator::template rebind<Node>::other nodeAllocator;
-    typename BucketAllocator::template rebind<Node*>::other bucketAllocator;
+    NodeAllocator *nodeAllocator;
+    BucketAllocator *bucketAllocator;
 };
 
 

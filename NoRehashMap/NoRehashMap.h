@@ -11,14 +11,21 @@ template<typename K, typename T,
          typename EqualType = std::equal_to<K>,
          typename NodeAllocator = std::allocator<std::pair<const K, T>>,
          typename BucketAllocator = std::allocator<void*>,
-         int movePerInsert = 1>
+         int MovePerInsert = 1>
 class NoRehashMap
 {
+private:
+
+    typedef NoRehashTableNode<K, T> Node;
+
+    typedef typename NodeAllocator::template rebind<Node>::other NodeAllocatorType;
+    typedef typename BucketAllocator::template rebind<Node*>::other BucketAllocatorType;
+
+    typedef NoRehashTable<K, T, HashAlgoType, EqualType, NodeAllocatorType, BucketAllocatorType> HashTableType;
+
 public:
 
-    typedef NoRehashTable<K, T, HashAlgoType, EqualType, NodeAllocator, BucketAllocator> HashTableType;
     typedef typename HashTableType::value_type value_type;
-
 
     class iterator
     {
@@ -71,11 +78,20 @@ public:
         typename HashTableType::iterator tableIter;
     };
 
+
     NoRehashMap():
+        table0(&nodeAllocator, &bucketAllocator),
+        table1(&nodeAllocator, &bucketAllocator),
         insertTable0(&table0), insertTable1(&table1),
         findTable0(&table0), findTable1(&table1)
     {
     }
+
+
+    NoRehashMap(const NoRehashMap &) = delete;
+    NoRehashMap(NoRehashMap &&) = delete;
+    NoRehashMap& operator=(const NoRehashMap &) = delete;
+    NoRehashMap& operator=(NoRehashMap &&) = delete;
 
 
     std::pair<iterator, bool> insert(const value_type &value)
@@ -146,7 +162,7 @@ private:
             std::swap(insertTable0, insertTable1);
         }
 
-        for(int i = 0; i < movePerInsert; ++i)
+        for(int i = 0; i < MovePerInsert; ++i)
         {
             typename HashTableType::iterator iter = insertTable1->begin();
             if(iter == insertTable1->end())
@@ -179,6 +195,13 @@ private:
         return iterator(nullptr, iter);
     }
 
+
+private:
+
+    // Allocators must be declared before tables.
+    // They must be created before tables and destroyed after tables.
+    NodeAllocatorType nodeAllocator;
+    BucketAllocatorType bucketAllocator;
 
     HashTableType table0, table1;
 

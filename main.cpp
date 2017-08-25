@@ -17,9 +17,6 @@ int main(int argc, char *argv[])
 {
     srand(time(nullptr));
 
-    mapInsertItemBenchmark();
-    return 0;
-
     if(argc > 1)
     {
         if(strcasecmp(argv[1], "BoostVersion") == 0)
@@ -51,6 +48,14 @@ int main(int argc, char *argv[])
                     if(!mapInsertBenchmark())
                     {
                         std::cout << "map insert benchmark failed" << std::endl;
+                        return -1;
+                    }
+                }
+                else if(strcasecmp(argv[i], "MapInsertItem") == 0)
+                {
+                    if(!mapInsertItemBenchmark())
+                    {
+                        std::cout << "map insert item benchmark failed" << std::endl;
                         return -1;
                     }
                 }

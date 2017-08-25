@@ -7,6 +7,14 @@ template<typename T, int blockSize = 0x400>
 class BlockStorageAllocator
 {
 public:
+    BlockStorageAllocator() = default;
+
+    BlockStorageAllocator(const BlockStorageAllocator &) = delete;
+    BlockStorageAllocator(BlockStorageAllocator &&) = delete;
+    BlockStorageAllocator& operator=(const BlockStorageAllocator &) = delete;
+    BlockStorageAllocator& operator=(BlockStorageAllocator &&) = delete;
+
+
     T* allocate(size_t count)
     {
         assert(count == 1);
@@ -18,13 +26,13 @@ public:
     {
         assert(count == 1);
 
-        free(p);
+        storage.free(p);
     }
 
     template<typename U>
     struct rebind
     {
-        typedef MallocAllocator<U> other;
+        typedef BlockStorageAllocator<U, blockSize> other;
     };
 
     BlockStorage<T, blockSize> storage;
