@@ -36,8 +36,12 @@ bool benchMapFind_fillMap(BenchmarkParameters &params, MapType &m)
     {
         Data d;
         d.key = keys[i];
-        m[d.key] = d;
-        //m.insert(typename MapType::value_type(d.key, d));
+        //m[d.key] = d;
+        std::pair<typename MapType::iterator, bool> p = m.insert(typename MapType::value_type(d.key, d));
+        if(!p.second)
+        {
+            return false;
+        }
     }
 
     return true;
@@ -259,7 +263,7 @@ bool benchNoRehashMap(BenchmarkParameters &params)
     typedef NoRehashMap<
             uint64_t,
             Data,
-            boost::hash<int>, std::equal_to<int>,
+            boost::hash<uint64_t>, std::equal_to<uint64_t>,
             BlockStorageAllocator<std::pair<const uint64_t, Data>>,
             MallocAllocator<void*>> NoRehashMapType;
 
@@ -410,7 +414,14 @@ bool benchBoostUnorderedMapInsert(BenchmarkParameters &params)
 
 bool benchNoRehashMapInsert(BenchmarkParameters &params)
 {
-    bool result = benchMapInsert<NoRehashMap<uint64_t, Data>>(params);
+    typedef NoRehashMap<
+            uint64_t,
+            Data,
+            boost::hash<uint64_t>, std::equal_to<uint64_t>,
+            BlockStorageAllocator<std::pair<const uint64_t, Data>>,
+            MallocAllocator<void*>> NoRehashMapType;
+
+    bool result = benchMapInsert<NoRehashMapType>(params);
     params.testName = "no rehash insert";
     return result;
 }
@@ -451,7 +462,6 @@ bool createBenchmarkParameters(int64_t itemCountStart, int64_t itemCountEnd, int
 {
     if(!randomVector(keys, itemCountEnd))
     {
-        std::cout << "randomVector failed\n";
         return false;
     }
 
@@ -709,7 +719,7 @@ bool mapInsertItemBenchmark()
     typedef NoRehashMap<
             uint64_t,
             Data,
-            boost::hash<int>, std::equal_to<int>,
+            boost::hash<uint64_t>, std::equal_to<uint64_t>,
             BlockStorageAllocator<std::pair<const uint64_t, Data>>,
             MallocAllocator<void*>> NoRehashMapType;
 
