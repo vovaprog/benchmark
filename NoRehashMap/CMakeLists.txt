@@ -4,7 +4,7 @@ project (prog)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
-include_directories(".")
+include_directories("." "..")
 
 set(SOURCE
     NoRehashMap.h
@@ -12,10 +12,11 @@ set(SOURCE
     BlockStorage.h
     BlockStorageAllocator.h
     MallocAllocator.h
-    NoRehashMapTest.cpp)
+    NoRehashMapTest.cpp
+    ../Tools.h ../Tools.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -std=c++11 -Wall -pedantic -pthread")
 
 add_executable(prog ${SOURCE})
 
-
+target_link_libraries(prog boost_filesystem boost_system)

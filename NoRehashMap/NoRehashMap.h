@@ -61,6 +61,12 @@ public:
         }
 
 
+        value_type& operator*() const
+        {
+            return tableIter.operator*();
+        }
+
+
         bool operator==(const iterator& iter) const
         {
             return this->tableIter == iter.tableIter;
@@ -131,9 +137,33 @@ public:
     }
 
 
+    size_t erase(const K& key)
+    {
+        size_t hash = table0.hashAlgo(key);
+
+        if(findTable0->erase(key, hash))
+        {
+            return 1;
+        }
+
+        if(findTable1->erase(key, hash))
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+
     size_t size() const
     {
         return table0.size() + table1.size();
+    }
+
+
+    iterator begin() const
+    {
+        return iterator(findTable1, findTable0->begin());
     }
 
 

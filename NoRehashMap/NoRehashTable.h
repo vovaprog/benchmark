@@ -10,9 +10,18 @@ struct NoRehashTableNode
     typedef std::pair<K, T> value_type;
 
     NoRehashTableNode<K, T> *next = nullptr;
+    bool lastInBucket = true;
+
     value_type value;
     size_t hash;
-    bool lastInBucket = false;
+};
+
+
+template<typename K, typename T>
+struct NoRehashTableEmptyNode
+{
+    NoRehashTableNode<K, T> *next = nullptr;
+    bool lastInBucket = true;
 };
 
 
@@ -49,6 +58,12 @@ public:
         }
 
 
+        value_type& operator*() const
+        {
+            return node->value;
+        }
+
+
         bool operator==(const iterator& iter) const
         {
             return node == iter.node;
@@ -65,16 +80,12 @@ public:
         {
             if(node != nullptr)
             {
-                node = node->nextIter;
+                node = node->next;
             }
             return *this;
         }
 
-    private:
-
         Node *node;
-
-        friend class NoRehashTable;
     };
 
 
@@ -119,7 +130,10 @@ public:
         while(cur != nullptr)
         {
             Node *next = cur->next;
+
+            cur->~Node();
             nodeAllocator->deallocate(cur, 1);
+
             cur = next;
         }
 
@@ -136,29 +150,7 @@ public:
         newNode->value = value;
         newNode->hash = hash;
 
-        size_t bucketIndex = hash % bucketCount;
-        Node *prev = buckets[bucketIndex];
-
-        if(prev == nullptr)
-        {
-            if(beginNode.next != nullptr)
-            {
-                buckets[beginNode.next->hash % bucketCount] = newNode;
-            }
-
-            buckets[bucketIndex] = reinterpret_cast<Node*>(&beginNode);
-            newNode->next = beginNode.next;
-            beginNode.next = newNode;
-            newNode->lastInBucket = true;
-        }
-        else
-        {
-            newNode->next = prev->next;
-            prev->next = newNode;
-            newNode->lastInBucket = false;
-        }
-
-        ++_size;
+        linkNode(newNode);
 
         return iterator(newNode);
     }
@@ -166,65 +158,15 @@ public:
 
     void link(iterator &iter)
     {
-        Node *node = iter.node;
-
-        size_t bucketIndex = node->hash % bucketCount;
-
-        if(buckets[bucketIndex] == nullptr)
-        {
-            if(beginNode.next != nullptr)
-            {
-                buckets[beginNode.next->hash % bucketCount] = node;
-            }
-            buckets[bucketIndex] = reinterpret_cast<Node*>(&beginNode);
-            node->next = beginNode.next;
-            beginNode.next = node;
-            node->lastInBucket = true;
-        }
-        else
-        {
-            node->next = buckets[bucketIndex]->next;
-            buckets[bucketIndex]->next = node;
-            node->lastInBucket = false;
-        }
-
-        ++_size;
+        linkNode(iter.node);
     }
 
-
-    void unlink(Node *node)
-    {
-        size_t bucketIndex = node->hash % bucketCount;
-
-        Node *prev = buckets[bucketIndex];
-
-        while(prev->next != node)
-        {
-            prev = prev->next;
-        }
-
-        prev->next = node->next;
-
-        // if next node is in another bucket - change pointer in buckets array.
-        if(node->next != nullptr)
-        {
-            size_t nextBucketIndex = node->next->hash % bucketCount;
-
-            if(nextBucketIndex != bucketIndex)
-            {
-                buckets[nextBucketIndex] = prev;
-            }
-        }
-
-        assert(_size > 0);
-        --_size;
-    }
 
     void unlinkBegin()
     {
         assert(beginNode.next != nullptr);
 
-        unlink(beginNode.next);
+        unlinkNext(&beginNode);
     }
 
 
@@ -257,6 +199,43 @@ public:
         }
 
         return end();
+    }
+
+
+    bool erase(const K &key, size_t hash)
+    {
+        size_t bucketIndex = hash % bucketCount;
+
+        Node *prev = buckets[bucketIndex];
+
+        if(prev == nullptr)
+        {
+            return false;
+        }
+
+        while(prev->next != nullptr)
+        {
+            Node *cur = prev->next;
+
+            if(cur->hash == hash && equalAlgo(cur->value.first, key))
+            {
+                unlinkNext(prev);
+
+                cur->~Node();
+                nodeAllocator->deallocate(cur, 1);
+
+                return true;
+            }
+
+            if(cur->lastInBucket == true)
+            {
+                break;
+            }
+
+            prev = prev->next;
+        }
+
+        return false;
     }
 
 
@@ -317,6 +296,67 @@ public:
 
 private:
 
+    void linkNode(Node *node)
+    {
+        size_t bucketIndex = node->hash % bucketCount;
+
+        if(buckets[bucketIndex] == nullptr)
+        {
+            if(beginNode.next != nullptr)
+            {
+                buckets[beginNode.next->hash % bucketCount] = node;
+            }
+            buckets[bucketIndex] = reinterpret_cast<Node*>(&beginNode);
+            node->next = beginNode.next;
+            beginNode.next = node;
+            node->lastInBucket = true;
+        }
+        else
+        {
+            node->next = buckets[bucketIndex]->next;
+            buckets[bucketIndex]->next = node;
+            node->lastInBucket = false;
+        }
+
+        ++_size;
+    }
+
+
+    template<typename PrevType>
+    void unlinkNext(PrevType *prev)
+    {
+        Node *del = prev->next;
+
+        if(del == nullptr)
+        {
+            return;
+        }
+
+        prev->next = del->next;
+
+        size_t bucketIndex = del->hash % bucketCount;
+
+        if(del->lastInBucket)
+        {
+            prev->lastInBucket = true;
+
+            if(del->next)
+            {
+                size_t nextBucketIndex = del->next->hash % bucketCount;
+                buckets[nextBucketIndex] = reinterpret_cast<Node*>(prev);
+            }
+
+            if(buckets[bucketIndex] == reinterpret_cast<Node*>(prev))
+            {
+                buckets[bucketIndex] = nullptr;
+            }
+        }
+
+        assert(_size > 0);
+        --_size;
+    }
+
+
     static size_t nextPrime(size_t num)
     {
         size_t const* const prime_list_begin = primes;
@@ -346,12 +386,7 @@ private:
 
     EqualAlgoType equalAlgo;
 
-    struct EmptyNode
-    {
-        Node *next = nullptr;
-    };
-
-    EmptyNode beginNode;
+    NoRehashTableEmptyNode<K, T> beginNode;
 
     NodeAllocator *nodeAllocator;
     BucketAllocator *bucketAllocator;
