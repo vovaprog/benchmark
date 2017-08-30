@@ -9,6 +9,11 @@ struct NoRehashTableNode
 {
     typedef std::pair<K, T> value_type;
 
+    NoRehashTableNode(const value_type &argValue, size_t argHash):
+        value(argValue), hash(argHash)
+    {
+    }
+
     NoRehashTableNode<K, T> *next = nullptr;
     bool lastInBucket = true;
 
@@ -17,6 +22,8 @@ struct NoRehashTableNode
 };
 
 
+// Node without value. Is used to store begin node data.
+// Data members must be the same as first members of NoRehashTableNode.
 template<typename K, typename T>
 struct NoRehashTableEmptyNode
 {
@@ -145,10 +152,7 @@ public:
     iterator insertHashNoCheck(const value_type &value, size_t hash)
     {
         Node *newNodeMemory = nodeAllocator->allocate(1);
-        Node *newNode = new (newNodeMemory) Node;
-
-        newNode->value = value;
-        newNode->hash = hash;
+        Node *newNode = new (newNodeMemory) Node(value, hash);
 
         linkNode(newNode);
 
@@ -359,12 +363,13 @@ private:
 
     static size_t nextPrime(size_t num)
     {
-        size_t const* const prime_list_begin = primes;
-        size_t const* const prime_list_end = primes + primesCount;
-        size_t const* bound =
-            std::lower_bound(prime_list_begin, prime_list_end, num);
-        if(bound == prime_list_end)
-            bound--;
+        size_t const* const primeListBegin = primes;
+        size_t const* const primeListEnd = primes + primesCount;
+        size_t const* bound = std::lower_bound(primeListBegin, primeListEnd, num);
+        if(bound == primeListEnd)
+        {
+            --bound;
+        }
         return *bound;
     }
 
@@ -393,7 +398,7 @@ private:
 };
 
 
-#define HASH_TABLE_PRIMES \
+#define NO_REHASH_TABLE_PRIMES \
     (17ul)(29ul)(37ul)(53ul)(67ul)(79ul) \
     (97ul)(131ul)(193ul)(257ul)(389ul)(521ul)(769ul) \
     (1031ul)(1543ul)(2053ul)(3079ul)(6151ul)(12289ul)(24593ul) \
@@ -406,10 +411,13 @@ private:
 template<typename K, typename T, typename HashType, typename EqualType, typename NodeAllocator, typename BucketAllocator>
 const size_t NoRehashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primes[] =
 {
-    BOOST_PP_SEQ_ENUM(HASH_TABLE_PRIMES)
+    BOOST_PP_SEQ_ENUM(NO_REHASH_TABLE_PRIMES)
 };
 
 template<typename K, typename T, typename HashType, typename EqualType, typename NodeAllocator, typename BucketAllocator>
-const size_t NoRehashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primesCount = BOOST_PP_SEQ_SIZE(HASH_TABLE_PRIMES);
+const size_t NoRehashTable<K, T, HashType, EqualType, NodeAllocator, BucketAllocator>::primesCount = BOOST_PP_SEQ_SIZE(NO_REHASH_TABLE_PRIMES);
+
+#undef NO_REHASH_TABLE_PRIMES
+
 
 #endif

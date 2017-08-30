@@ -34,8 +34,8 @@ public:
         {
         }
 
-        iterator(HashTableType *nextTable, const typename HashTableType::iterator &iter):
-            nextTable(nextTable), tableIter(iter)
+        iterator(const typename HashTableType::iterator &iter, HashTableType *nextTable):
+            tableIter(iter), nextTable(nextTable)
         {
         }
 
@@ -80,8 +80,8 @@ public:
 
     private:
 
-        HashTableType *nextTable;
         typename HashTableType::iterator tableIter;
+        HashTableType *nextTable;
     };
 
 
@@ -163,13 +163,13 @@ public:
 
     iterator begin() const
     {
-        return iterator(findTable1, findTable0->begin());
+        return iterator(findTable0->begin(), findTable1);
     }
 
 
     iterator end() const
     {
-        return iterator(nullptr, table0.end());
+        return iterator(table0.end(), nullptr);
     }
 
 
@@ -210,7 +210,7 @@ private:
 
         typename HashTableType::iterator tabIter = insertTable0->insertHashNoCheck(value, hash);
         HashTableType *nextTable = insertTable0 == findTable0 ? findTable1 : nullptr;
-        return std::make_pair(iterator(nextTable, tabIter), true);
+        return std::make_pair(iterator(tabIter, nextTable), true);
     }
 
 
@@ -219,10 +219,10 @@ private:
         typename HashTableType::iterator iter = findTable0->findHash(key, hash);
         if(iter != findTable0->end())
         {
-            return iterator(findTable1, iter);
+            return iterator(iter, findTable1);
         }
         iter = findTable1->findHash(key, hash);
-        return iterator(nullptr, iter);
+        return iterator(iter, nullptr);
     }
 
 
