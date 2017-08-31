@@ -21,19 +21,19 @@ public:
 
     void destroy()
     {
-        Block *cur = blocks;
+        Block *cur = blocksHead;
         while(cur != nullptr)
         {
             Block *temp = cur->next;
             delete cur;
             cur = temp;
         }
-        blocks = nullptr;
+        blocksHead = nullptr;
         freeListHead = nullptr;
     }
 
 #define NODE_TO_ITEM(node) (reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(node) + offsetof(Node, buf)))
-#define ITEM_TO_NODE(p) (reinterpret_cast<Node*>(reinterpret_cast<uintptr_t>(p) - offsetof(Node, buf)))
+#define ITEM_TO_NODE(item) (reinterpret_cast<Node*>(reinterpret_cast<uintptr_t>(item) - offsetof(Node, buf)))
 
     T* allocate()
     {
@@ -43,7 +43,7 @@ public:
         }
 
         Node *result = freeListHead;
-        freeListHead = result->blockStorageData.next;
+        freeListHead = result->next;
 
         return NODE_TO_ITEM(result);
     }
@@ -53,27 +53,54 @@ public:
     {
         Node *node = ITEM_TO_NODE(p);
 
-        node->blockStorageData.next = freeListHead;
+        node->next = freeListHead;
         freeListHead = node;
     }
 
 #undef NODE_TO_ITEM
 #undef ITEM_TO_NODE
 
+
+    void getStorageInfo(size_t &allocatedItems, size_t &freeItems) const
+    {
+        freeItems = 0;
+
+        Node *curNode = freeListHead;
+
+        while(curNode != nullptr)
+        {
+            ++freeItems;
+            curNode = curNode->next;
+        }
+
+        size_t totalItems = 0;
+
+        Block *curBlock = blocksHead;
+
+        while(curBlock != nullptr)
+        {
+            totalItems += BlockSize;
+            curBlock = curBlock->next;
+        }
+
+        allocatedItems = totalItems - freeItems;
+    }
+
+
 private:
 
     inline void allocateBlock()
     {
         Block *newBlock = new Block;
-        newBlock->next = blocks;
-        blocks = newBlock;
+        newBlock->next = blocksHead;
+        blocksHead = newBlock;
 
-        newBlock->nodes[BlockSize - 1].blockStorageData.next = nullptr;
+        newBlock->nodes[BlockSize - 1].next = nullptr;
         if(BlockSize > 1)
         {
             for(int i = 0; i < BlockSize - 1; ++i)
             {
-                newBlock->nodes[i].blockStorageData.next = &(newBlock->nodes[i + 1]);
+                newBlock->nodes[i].next = &(newBlock->nodes[i + 1]);
             }
         }
 
@@ -83,16 +110,10 @@ private:
 
 private:
 
-    struct Node;
-    struct ServiceData
-    {
-        Node *next = nullptr;
-    };
-
     struct Node
     {
         char buf[sizeof(T)];
-        ServiceData blockStorageData;
+        Node *next = nullptr;
     };
 
     struct Block
@@ -101,7 +122,7 @@ private:
         Node nodes[BlockSize];
     };
 
-    Block *blocks = nullptr;
+    Block *blocksHead = nullptr;
     Node *freeListHead = nullptr;
 };
 

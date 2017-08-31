@@ -213,6 +213,13 @@ bool testNoRehashMap()
 
 int main()
 {
+#ifdef NDEBUG
+    assert(0); // check that asserts don't work.
+    std::cout << "asserts disabled" << std::endl;
+#else
+    std::cout << "asserts enabled" << std::endl;
+#endif
+
     typedef NoRehashMap <
     uint64_t,
     DataCounted,
