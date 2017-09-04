@@ -35,7 +35,14 @@ public:
         typedef BlockStorageAllocator<U, blockSize> other;
     };
 
-    BlockStorage<T, blockSize> storage;
+    typedef BlockStorage<T, blockSize> BlockStorageType;
+
+    const BlockStorageType& getStorage() const
+    {
+        return storage;
+    }
+
+    BlockStorageType storage;
 };
 
 #endif

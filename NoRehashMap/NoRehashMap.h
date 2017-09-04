@@ -1,5 +1,5 @@
-#ifndef INCREMENTA_HASH_MAP_H
-#define INCREMENTA_HASH_MAP_H
+#ifndef NO_REHASH_MAP_H
+#define NO_REHASH_MAP_H
 
 #include <boost/functional/hash.hpp>
 
@@ -15,17 +15,18 @@ template<typename K, typename T,
 class NoRehashMap
 {
 private:
-
     typedef NoRehashTableNode<K, T> Node;
 
+public:
     typedef typename NodeAllocator::template rebind<Node>::other NodeAllocatorType;
     typedef typename BucketAllocator::template rebind<Node*>::other BucketAllocatorType;
 
+private:
     typedef NoRehashTable<K, T, HashAlgoType, EqualType, NodeAllocatorType, BucketAllocatorType> HashTableType;
 
 public:
-
     typedef typename HashTableType::value_type value_type;
+
 
     class iterator
     {
@@ -178,6 +179,19 @@ public:
         table0.clear();
         table1.clear();
     }
+
+
+    const NodeAllocatorType& getNodeAllocator() const
+    {
+        return nodeAllocator;
+    }
+
+
+    const BucketAllocatorType& getBucketAllocator() const
+    {
+        return bucketAllocator;
+    }
+
 
 private:
 

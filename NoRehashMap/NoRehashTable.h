@@ -98,7 +98,7 @@ public:
 
     NoRehashTable(NodeAllocator *argNodeAllocator, BucketAllocator *argBucketAllocator):
         buckets(nullptr),
-        _size(0),
+        curSize(0),
         nodeAllocator(argNodeAllocator),
         bucketAllocator(argBucketAllocator)
     {
@@ -144,7 +144,7 @@ public:
             cur = next;
         }
 
-        _size = 0;
+        curSize = 0;
         beginNode.next = nullptr;
     }
 
@@ -263,25 +263,25 @@ public:
 
     float load_factor() const
     {
-        return static_cast<float>(_size) / static_cast<float>(bucketCount);
+        return static_cast<float>(curSize) / static_cast<float>(bucketCount);
     }
 
 
     size_t size() const
     {
-        return _size;
+        return curSize;
     }
 
 
     size_t max_size() const
     {
-        return _maxSize;
+        return maxSize;
     }
 
 
     void reallocate(size_t argBucketCount)
     {
-        assert(_size == 0);
+        assert(curSize == 0);
 
         if(buckets != nullptr)
         {
@@ -294,7 +294,7 @@ public:
 
         memset(buckets, 0, bucketCount * sizeof(Node*));
 
-        _maxSize = bucketCount * max_load_factor();
+        maxSize = bucketCount * max_load_factor();
     }
 
 
@@ -322,7 +322,7 @@ private:
             node->lastInBucket = false;
         }
 
-        ++_size;
+        ++curSize;
     }
 
 
@@ -356,8 +356,8 @@ private:
             }
         }
 
-        assert(_size > 0);
-        --_size;
+        assert(curSize > 0);
+        --curSize;
     }
 
 
@@ -386,8 +386,8 @@ private:
     Node **buckets = nullptr;
     size_t bucketCount;
 
-    size_t _size;
-    size_t _maxSize;
+    size_t curSize;
+    size_t maxSize;
 
     EqualAlgoType equalAlgo;
 

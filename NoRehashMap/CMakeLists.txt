@@ -15,7 +15,7 @@ set(SOURCE
     NoRehashMapTest.cpp
     ../Tools.h ../Tools.cpp)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -std=c++11 -Wall -pedantic -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -pedantic-errors -fstack-protector")
 
 add_executable(prog ${SOURCE})
 

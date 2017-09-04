@@ -1,9 +1,11 @@
-#include <iostream>
-
 #include <NoRehashMap.h>
 #include <MallocAllocator.h>
 #include <BlockStorageAllocator.h>
 #include <Tools.h>
+
+#include <iostream>
+#include <stdlib.h>
+
 
 struct DataCounted
 {
@@ -35,20 +37,74 @@ size_t DataCounted::ctrCallCount = 0;
 size_t DataCounted::desCallCount = 0;
 
 
+typedef NoRehashMap <
+    uint64_t,
+    DataCounted,
+    boost::hash<uint64_t>, std::equal_to<uint64_t>,
+    BlockStorageAllocator<std::pair<const uint64_t, uint64_t>>,
+    MallocAllocator<void* >> MapBlockStorageType;
+
+typedef NoRehashMap<uint64_t, DataCounted> MapDefaultAllocatorsType;
+
+
+#define checkTrue(expression) checkTrueFunction(expression, "", #expression, __FILE__, __LINE__)
+#define checkTrueMsg(expression, message) checkTrueFunction(expression, message, #expression, __FILE__, __LINE__)
+
+
+void checkTrueFunction(bool value, const char *message,
+                       const char *expression, const char *file, size_t line)
+{
+    if(!value)
+    {
+        const char *msg = message;
+
+        if(msg == nullptr || msg[0] == 0)
+        {
+            msg = "check failed";
+        }
+
+        std::cout << msg << ": " << expression << std::endl;
+        std::cout << file << ": " << line << std::endl;
+        exit(-1);
+    }
+}
+
+
+template<typename NodeAllocator>
+void checkNodeAllocator(const NodeAllocator &nodeAllocator, size_t expectedAllocatedCount)
+{
+}
+
+
+template<>
+void checkNodeAllocator<MapBlockStorageType::NodeAllocatorType>(
+    const MapBlockStorageType::NodeAllocatorType &nodeAllocator,
+    size_t expectedAllocatedCount)
+{
+    const MapBlockStorageType::NodeAllocatorType::BlockStorageType &storage = nodeAllocator.getStorage();
+
+    size_t allocatedItems, freeItems;
+    storage.getStorageInfo(allocatedItems, freeItems);
+
+    if(allocatedItems != expectedAllocatedCount)
+    {
+        std::cout << "invalid allocated count: " << allocatedItems <<
+                  "   expected: " << expectedAllocatedCount << std::endl;
+        exit(-1);
+    }
+}
+
+
 template<typename MapType>
-bool testNoRehashMap()
+void testNoRehashMap()
 {
     MapType m;
 
     std::vector<uint64_t> keys;
 
-    const int itemCount = 100000;
+    const int itemCount = 300000;
 
-    if(!randomVector(keys, itemCount))
-    {
-        std::cout << "randomVector failed!" << std::endl;
-        return false;
-    }
+    checkTrue(randomVector(keys, itemCount));
 
     for(int i = 0; i < itemCount; ++i)
     {
@@ -57,45 +113,30 @@ bool testNoRehashMap()
 
         std::pair<typename MapType::iterator, bool> p = m.insert(typename MapType::value_type(keys[i], d));
 
-        if(!p.second)
-        {
-            std::cout << "insert failed!" << std::endl;
-            return false;
-        }
+        checkTrue(p.second);
 
-        if(m.size() != static_cast<size_t>(i + 1))
-        {
-            std::cout << "invalid size!" << std::endl;
-            return false;
-        }
+        checkTrue(m.size() == static_cast<size_t>(i + 1));
     }
+
+    checkNodeAllocator(m.getNodeAllocator(), itemCount);
 
     for(int i = 0; i < itemCount; ++i)
     {
-        if(m[keys[i]].key != keys[i])
-        {
-            std::cout << "find failed!" << std::endl;
-            return false;
-        }
+        checkTrue(m[keys[i]].key == keys[i]);
     }
 
+    checkNodeAllocator(m.getNodeAllocator(), itemCount);
 
     for(int k = 0; k < 4; ++k)
     {
         for(int i = k % 2; i < itemCount; i += 2)
         {
-            if(m.erase(keys[i]) != 1)
-            {
-                std::cout << "erase failed!" << " " << k << " " << i << std::endl;
-                return false;
-            }
+            checkTrue(m.erase(keys[i]) == 1);
         }
 
-        if(m.size() != itemCount / 2)
-        {
-            std::cout << "invalid size!" << std::endl;
-            return false;
-        }
+        checkTrue(m.size() == itemCount / 2);
+
+        checkNodeAllocator(m.getNodeAllocator(), itemCount / 2);
 
         for(int i = k % 2; i < itemCount; i += 2)
         {
@@ -104,35 +145,24 @@ bool testNoRehashMap()
 
             std::pair<typename MapType::iterator, bool> p = m.insert(typename MapType::value_type(keys[i], d));
 
-            if(!p.second)
-            {
-                std::cout << "insert failed!" << std::endl;
-                return false;
-            }
+            checkTrue(p.second);
         }
 
-        if(m.size() != itemCount)
-        {
-            std::cout << "invalid size!" << std::endl;
-            return false;
-        }
+        checkTrue(m.size() == itemCount);
+
+        checkNodeAllocator(m.getNodeAllocator(), itemCount);
     }
 
 
     for(int i = 1; i < itemCount; i += 2)
     {
-        if(m.erase(keys[i]) != 1)
-        {
-            std::cout << "erase failed!" << std::endl;
-            return false;
-        }
+        checkTrue(m.erase(keys[i]) == 1);
     }
 
-    if(m.size() != itemCount / 2)
-    {
-        std::cout << "invalid size!" << std::endl;
-        return false;
-    }
+    checkTrue(m.size() == itemCount / 2);
+
+    checkNodeAllocator(m.getNodeAllocator(), itemCount / 2);
+
 
     //========================================================================
     // iteration test for
@@ -147,28 +177,14 @@ bool testNoRehashMap()
 
         for(typename MapType::iterator iter = m.begin(); iter != m.end(); ++iter)
         {
-            if(iter->first != iter->second.key)
-            {
-                std::cout << "iteration test failed!" << std::endl;
-                return false;
-            }
-            if(keySet.count(iter->second.key) != 1)
-            {
-                std::cout << "iteration test failed!" << std::endl;
-                return false;
-            }
-            if(keySet.erase(iter->second.key) != 1)
-            {
-                std::cout << "iteration test failed!" << std::endl;
-                return false;
-            }
+            checkTrue(iter->first == iter->second.key);
+
+            checkTrue(keySet.count(iter->second.key) == 1);
+
+            checkTrue(keySet.erase(iter->second.key) == 1);
         }
 
-        if(keySet.size() != 0)
-        {
-            std::cout << "iteration test failed!" << std::endl;
-            return false;
-        }
+        checkTrue(keySet.size() == 0);
     }
 
     //========================================================================
@@ -184,31 +200,17 @@ bool testNoRehashMap()
 
         for(typename MapType::value_type& v : m)
         {
-            if(v.first != v.second.key)
-            {
-                std::cout << "iteration test failed!" << std::endl;
-                return false;
-            }
-            if(keySet.count(v.second.key) != 1)
-            {
-                std::cout << "iteration test failed!" << std::endl;
-                return false;
-            }
-            if(keySet.erase(v.second.key) != 1)
-            {
-                std::cout << "iteration test failed!" << std::endl;
-                return false;
-            }
+            checkTrue(v.first == v.second.key);
+
+            checkTrue(keySet.count(v.second.key) == 1);
+
+            checkTrue(keySet.erase(v.second.key) == 1);
         }
 
-        if(keySet.size() != 0)
-        {
-            std::cout << "iteration test failed!" << std::endl;
-            return false;
-        }
+        checkTrue(keySet.size() == 0);
     }
 
-    return true;
+    checkNodeAllocator(m.getNodeAllocator(), itemCount / 2);
 }
 
 int main()
@@ -220,25 +222,10 @@ int main()
     std::cout << "asserts enabled" << std::endl;
 #endif
 
-    typedef NoRehashMap <
-    uint64_t,
-    DataCounted,
-    boost::hash<uint64_t>, std::equal_to<uint64_t>,
-    BlockStorageAllocator<std::pair<const uint64_t, uint64_t>>,
-    MallocAllocator<void* >> MapType;
 
-    if(!testNoRehashMap<MapType>())
-    {
-        return -1;
-    }
+    testNoRehashMap<MapBlockStorageType>();
 
-
-    typedef NoRehashMap<uint64_t, DataCounted> MapTypeDefault;
-
-    if(!testNoRehashMap<MapTypeDefault>())
-    {
-        return -1;
-    }
+    testNoRehashMap<MapDefaultAllocatorsType>();
 
 
     if(DataCounted::ctrCallCount != DataCounted::desCallCount)
